@@ -19,6 +19,6 @@ spec:
           imagePullPolicy: Always
           env:
             - name: INVENTORY_ADDR
-              value: "172.16.2.99:30081"
+              value: "172.20.20.3:30081"
             - name: ZMQ_SUB_ADDR
-              value: "tcp://172.16.2.99:30557"
+              value: "tcp://172.20.20.3:30557"

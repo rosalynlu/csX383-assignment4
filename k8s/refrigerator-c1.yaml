@@ -19,7 +19,7 @@ spec:
         imagePullPolicy: Always
         env:
         - name: ORDERING_SERVICE_URL
-          value: "http://172.16.2.99:30083"
+          value: "http://172.20.20.2:30083"
         ports:
         - containerPort: 8501
 ---
