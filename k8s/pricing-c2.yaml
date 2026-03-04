@@ -19,7 +19,7 @@ spec:
           imagePullPolicy: Always
           env:
             - name: DB_HOST
-              value: "172.16.6.226"
+              value: "grocery-db.team6.svc.cluster.local"
             - name: DB_PORT
               value: "5432"
             - name: DB_NAME
