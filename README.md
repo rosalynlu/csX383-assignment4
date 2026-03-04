@@ -46,10 +46,10 @@ csX383-assignment1/
 │       ├── init_schema.sql      # PostgreSQL database schema
 │       └── seed_data.sql        # Initial data for items and pricing
 ├── scripts/
-│  └── init_db.sh               # Database initialization script
-   |__ plot_latency.py          # latency analytics visualization script
-|  |__ tail_latency.py          # P2 tail lantency analysis(P50/P90/P95 + CDF) 
-   |__ locustfile.py            # Locust worload definition for load testing
+│   ├── init_db.sh               # Database initialization script
+│   ├── plot_latency.py          # latency analytics visualization script
+│   ├── tail_latency.py          # P2 tail lantency analysis(P50/P90/P95 + CDF) 
+│   └── locustfile.py            # Locust worload definition for load testing
 ├── services/
 │   ├── client_streamlit/
 │   │   └── app.py               # Streamlit web UI client
@@ -99,13 +99,13 @@ source .venv/bin/activate
 
 Install required packages:
 
-```
+```bash
 pip install -r client/requirements.txt
 ```
 
 Install FlatBuffers compiler (flatc):
 
-```
+```bash
 sudo apt update
 sudo apt install -y flatbuffers-compiler
 flatc --version
@@ -120,33 +120,33 @@ The PostgreSQL database stores:
 
 Install PostgreSQL:
 
-```
+```bash
 sudo apt update
 sudo apt install -y postgresql postgresql-contrib
 ```
 
 Start PostgreSQL service:
 
-```
+```bash
 sudo systemctl start postgresql
 sudo systemctl enable postgresql
 ```
 
 Create database user and set password (skip this step if already created):
 
-```
+```bash
 sudo -u postgres createuser -s --pwprompt admin
 ```
 
 Copy environment configuration:
 
-```
+```bash
 cp .env.example .env
 ```
 
 Edit the .env file and set your database password:
 
-```
+```bash
 nano .env
 ```
 
@@ -159,7 +159,7 @@ Update the following variables:
 
 Initialize database (creates tables and seeds initial data):
 
-```
+```bash
 bash scripts/init_db.sh
 ```
 
@@ -171,7 +171,7 @@ This script will:
 
 Expected output:
 
-```
+```bash
 Database initialized and seeded
 ```
 
@@ -181,7 +181,7 @@ You will run Inventory, 5 robots, Pricing, Ordering, and Streamlit on the cloud 
 
 **Install and start tmux**
 
-```
+```bash
 sudo apt install -y tmux
 tmux new -s pa1
 ```
@@ -192,14 +192,14 @@ Once inside tmux, create windows for each service. After each command, the termi
 
 **Window 1 - Inventory (gRPC + ZeroMQ PUB)**
 
-```
+```bash
 source .venv/bin/activate
 python services/inventory_grpc/server.py
 ```
 
 Expected output:
 
-```
+```bash
 [Inventory] ZMQ PUB bound at tcp://0.0.0.0:5556
 [Inventory gRPC] listening on 0.0.0.0:50051
 ```
@@ -208,74 +208,74 @@ Expected output:
 
 Run one command per window:
 
-```
+```bash
 source .venv/bin/activate
 python services/robots/robot.py --name bread
 ```
 
-```
+```bash
 source .venv/bin/activate
 python services/robots/robot.py --name dairy
 ```
 
-```
+```bash
 source .venv/bin/activate
 python services/robots/robot.py --name meat
 ```
 
-```
+```bash
 source .venv/bin/activate
 python services/robots/robot.py --name produce
 ```
 
-```
+```bash
 source .venv/bin/activate
 python services/robots/robot.py --name party
 ```
 
 Expected outputs:
 
-```
+```bash
 [bread] Connected SUB to tcp://127.0.0.1:5556 (topics: FETCH, RESTOCK)
 [bread] gRPC connected to Inventory at 127.0.0.1:50051
 ```
 
-```
+```bash
 [dairy] Connected SUB to tcp://127.0.0.1:5556 (topics: FETCH, RESTOCK)
 [dairy] gRPC connected to Inventory at 127.0.0.1:50051
 ```
 
-```
+```bash
 [meat] Connected SUB to tcp://127.0.0.1:5556 (topics: FETCH, RESTOCK)
 [meat] gRPC connected to Inventory at 127.0.0.1:50051
 ```
 
-```
+```bash
 [produce] Connected SUB to tcp://127.0.0.1:5556 (topics: FETCH, RESTOCK)
 [produce] gRPC connected to Inventory at 127.0.0.1:50051
 ```
 
-```
+```bash
 [party] Connected SUB to tcp://127.0.0.1:5556 (topics: FETCH, RESTOCK)
 [party] gRPC connected to Inventory at 127.0.0.1:50051
 ```
 
 **Window 7 - Pricing (gRPC)**
 
-```
+```bash
 source .venv/bin/activate
 python services/pricing_grpc/server.py
 ```
 
 Expected output:
 
-```
+```bash
 [Pricing gRPC] listening on 0.0.0.0:50053
 ```
 
 **Window 8 - Ordering (Flask)**
 
-```
+```bash
 source .venv/bin/activate
 export INVENTORY_ADDR=127.0.0.1:50051
 export FLASK_APP=services/ordering_flask/app.py
@@ -284,7 +284,7 @@ flask run --host 0.0.0.0 --port 5000
 
 Expected output:
 
-```
+```bash
  * Serving Flask app 'services/ordering_flask/app.py'
  * Debug mode: off
 WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
@@ -296,14 +296,14 @@ Press CTRL+C to quit
 
 **Window 9 - Streamlit Client**
 
-```
+```bash
 source .venv/bin/activate
 streamlit run services/client_streamlit/app.py --server.address 0.0.0.0 --server.port 8501
 ```
 
 Expected output:
 
-```
+```bash
 Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
 
 
@@ -318,7 +318,7 @@ To leave tmux running, `CTRL-B + D`.
 
 To reattach later:
 
-```
+```bash
 tmux attach -t pa1
 ```
 
@@ -389,7 +389,7 @@ HTTP status: 200
 
 **Example JSON response (Restock Order):**
 
-```
+```json
 {
   "code": "OK",
   "message": "OK: received all robot replies for 5b42119g-b997-51c9-9cef-3fb9154f2eee"
@@ -405,32 +405,32 @@ Robot terminals will also log their received message and response.
 
 **Example:**
 
-```
+```bash
 [bread] Working on bread (sleep 0.50s)
 [bread] OK sent request_id=3a31108f-a986-40b8-8bde-2ea8043e1ddd served_id=abc123 items=['bread']
 ```
 
-```
+```bash
 [dairy] Working on milk (sleep 0.58s)
 [dairy] OK sent request_id=3a31108f-a986-40b8-8bde-2ea8043e1ddd served_id=abc123 items=['milk']
 ```
 
-```
+```bash
 [meat] Working on beef (sleep 0.46s)
 [meat] OK sent request_id=3a31108f-a986-40b8-8bde-2ea8043e1ddd served_id=abc123 items=['beef']
 ```
 
-```
+```bash
 [produce] Working on apples (sleep 0.33s)
 [produce] OK sent request_id=3a31108f-a986-40b8-8bde-2ea8043e1ddd served_id=abc123 items=['apples']
 ```
 
-```
+```bash
 [party] Working on napkins (sleep 0.52s)
 [party] OK sent request_id=3a31108f-a986-40b8-8bde-2ea8043e1ddd served_id=abc123 items=['napkins']
 ```
 
-```
+```bash
 127.0.0.1 - - [06/Feb/2026 01:02:59] "POST /submit HTTP/1.1" 200 -
 ```
 
@@ -458,7 +458,7 @@ Added a latency analytics visualization pipeline using PostgreSQL analytics data
 
 From repository root:
 
-```
+```bash
 cd ~/csX383-assignment1
 source .venv/bin/activate
 export $(grep -v '^#' .env | xargs)
@@ -534,12 +534,258 @@ python3 scripts/tail_latency.py \
   --combined
 ```
 
+
 **Output:**
 - `out/cdf_per_run.png` — CDF curve per run
 - `out/cdf_combined.png` — all runs overlaid
 - `out/per_run_tail_latencies.csv` — P50/P90/P95/P99 per run
 - `out/summary.txt` — pooled statistics across all runs
 
+## Milestone 3: ContainerLab HIL implementation
+
+### Install ContainerLab and Docker
+
+Run on a seperate VM used for network emulation.
+
+```bash
+sudo apt-get update
+sudo apt-get install -y ca-certificates curl gnupg
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo $VERSION_CODENAME) stable" \
+  | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+
+bash -c "$(curl -sL https://get.containerlab.dev)"
+sudo usermod -aG docker $USER
+newgrp docker
+```
+
+### Build WAN Forwarder Image
+
+Run on ContainerLab VM.
+
+If `wan_forwarder` directory does not exist yet:
+
+```bash
+mkdir -p wan_forwarder
+```
+
+```bash
+cd wan_forwarder
+cat > Dockerfile <<'EOF'
+FROM alpine:3.20
+RUN apk add --no-cache socat iproute2
+CMD ["sh","-c","sleep infinity"]
+EOF
+docker build -t wan-forwarder:latest .
+```
+
+Create `topo.yaml`:
+
+```yaml
+name: pa2-wan
+topology:
+  nodes:
+    wan_c1_c2:
+      kind: linux
+      image: wan-forwarder:latest
+    wan_c2_c3:
+      kind: linux
+      image: wan-forwarder:latest
+```
+
+Deploy and verify topology:
+
+```bash
+sudo containerlab deploy -t topo.yaml
+docker ps | grep pa2-wan
+```
+
+Inside the forwarders:
+
+```bash
+docker exec -it clab-pa2-wan-wan_c1_c2 sh -lc '
+# forward WAN endpoint port 30083 -> real ordering nodeport
+socat TCP-LISTEN:30083,fork,reuseaddr TCP:<CLUSTER_WORKER_NODE_IP>:30083 &
+'
+```
+
+```bash
+docker exec -it clab-pa2-wan-wan_c2_c3 sh -lc '
+# gRPC
+socat TCP-LISTEN:30081,fork,reuseaddr TCP:<CLUSTER_WORKER_NODE_IP>:30081 &
+# ZMQ (still TCP)
+socat TCP-LISTEN:30557,fork,reuseaddr TCP:<CLUSTER_WORKER_NODE_IP>:30557 &
+'
+```
+
+Get WAN endpoint IPs:
+
+```bash
+docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' clab-pa2-wan-wan_c1_c2
+docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' clab-pa2-wan-wan_c2_c3
+```
+
+Apply WAN scenarios:
+
+```bash
+docker exec -it clab-pa2-wan-wan_c1_c2 sh -lc '
+tc qdisc add dev eth0 root netem delay 30ms loss 1% 2>/dev/null || true
+'
+docker exec -it clab-pa2-wan-wan_c2_c3 sh -lc '
+tc qdisc add dev eth0 root netem delay 30ms loss 1% 2>/dev/null || true
+'
+```
+
+```bash
+docker exec -it clab-pa2-wan-wan_c1_c2 sh -lc '
+tc qdisc replace dev eth0 root netem delay 80ms loss 0.5%
+tc qdisc add dev eth0 parent 1:1 tbf rate 10mbit burst 32kbit latency 400ms 2>/dev/null || true
+'
+# (if tbf layering is annoying, keep it simple and just do delay/loss)
+```
+
+```bash
+docker exec -it clab-pa2-wan-wan_c1_c2 sh -lc 'tc qdisc del dev eth0 root 2>/dev/null || true'
+docker exec -it clab-pa2-wan-wan_c2_c3 sh -lc 'tc qdisc del dev eth0 root 2>/dev/null || true'
+```
+
+### Point K8s Deployments
+
+Run on local machine.
+
+```bash
+scp -r <VM_NAME>:~csX383-assignment2/k8s nw-c1-m1:~/team6
+ssh nw-c1-m1 "kubectl apply -f team6/k8s/refrigerator-c1.yaml"
+ssh nw-c3-m1 "kubectl apply -f team6/k8s/robots-c3.yaml"
+```
+
+Now all inter-cluster communication passes through ContainerLab WAN forwarders.
+
+### Simulate WAN Network Conditions
+
+```bash
+docker exec clab-pa2-wan-wan_c1_c2 tc qdisc add dev eth0 root netem delay 30ms loss 1%
+
+docker exec clab-pa2-wan-wan_c2_c3 tc qdisc add dev eth0 root netem delay 30ms loss 1%
+```
+
+```bash
+docker exec clab-pa2-wan-wan_c1_c2 tc qdisc replace dev eth0 root netem delay 80ms loss 0.5%
+
+docker exec clab-pa2-wan-wan_c2_c3 tc qdisc replace dev eth0 root netem delay 80ms loss 0.5%
+```
+
+```bash
+docker exec clab-pa2-wan-wan_c1_c2 tc qdisc del dev eth0 root
+
+docker exec clab-pa2-wan-wan_c2_c3 tc qdisc del dev eth0 root
+```
+
+### Run Workload Experiments
+
+Repeat locust experiments for each WAN scenario and user load from the repo root:
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+```bash
+RUN_TAG=baseline_u1_rep1 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 1 -r 1 --run-time 60s --host http://<NODE_IP>:30083
+RUN_TAG=baseline_u1_rep2 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 1 -r 2 --run-time 60s --host http://<NODE_IP>:30083
+RUN_TAG=baseline_u1_rep3 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 1 -r 3 --run-time 60s --host http://<NODE_IP>:30083
+```
+
+```bash
+RUN_TAG=baseline_u10_rep1 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 10 -r 1 --run-time 60s --host http://<NODE_IP>:30083 2>/dev/null
+RUN_TAG=baseline_u10_rep2 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 10 -r 2 --run-time 60s --host http://<NODE_IP>:30083 2>/dev/null
+RUN_TAG=baseline_u10_rep3 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 10 -r 3 --run-time 60s --host http://<NODE_IP>:30083 2>/dev/null
+```
+
+```bash
+RUN_TAG=baseline_u20_rep1 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 20 -r 1 --run-time 60s --host http://<NODE_IP>:30083 2>/dev/null
+RUN_TAG=baseline_u20_rep2 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 20 -r 2 --run-time 60s --host http://<NODE_IP>:30083 2>/dev/null
+RUN_TAG=baseline_u20_rep3 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 20 -r 3 --run-time 60s --host http://<NODE_IP>:30083 2>/dev/null
+```
+
+```bash
+RUN_TAG=wan30ms_u1_rep1 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 1 -r 1 --run-time 60s --host http://<NODE_IP>:30083 2>/dev/null
+RUN_TAG=wan30ms_u1_rep2 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 1 -r 2 --run-time 60s --host http://<NODE_IP>:30083 2>/dev/null
+RUN_TAG=wan30ms_u1_rep3 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 1 -r 3 --run-time 60s --host http://<NODE_IP>:30083 2>/dev/null
+```
+
+```bash
+RUN_TAG=wan30ms_u10_rep1 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 10 -r 1 --run-time 60s --host http://<NODE_IP>:30083 2>/dev/null
+RUN_TAG=wan30ms_u10_rep2 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 10 -r 2 --run-time 60s --host http://<NODE_IP>:30083 2>/dev/null
+RUN_TAG=wan30ms_u10_rep3 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 10 -r 3 --run-time 60s --host http://<NODE_IP>:30083 2>/dev/null
+```
+
+```bash
+RUN_TAG=wan30ms_u20_rep1 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 20 -r 1 --run-time 60s --host http://<NODE_IP>:30083 2>/dev/null
+RUN_TAG=wan30ms_u20_rep2 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 20 -r 2 --run-time 60s --host http://<NODE_IP>:30083 2>/dev/null
+RUN_TAG=wan30ms_u20_rep3 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 20 -r 3 --run-time 60s --host http://<NODE_IP>:30083 2>/dev/null
+```
+
+```bash
+RUN_TAG=wan80ms_u1_rep1 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 1 -r 1 --run-time 60s --host http://<NODE_IP>:30083 2>/dev/null
+RUN_TAG=wan80ms_u1_rep2 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 1 -r 2 --run-time 60s --host http://<NODE_IP>:30083 2>/dev/null
+RUN_TAG=wan80ms_u1_rep3 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 1 -r 3 --run-time 60s --host http://<NODE_IP>:30083 2>/dev/null
+```
+
+```bash
+RUN_TAG=wan80ms_u10_rep1 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 10 -r 1 --run-time 60s --host http://<NODE_IP>:30083 2>/dev/null
+RUN_TAG=wan80ms_u10_rep2 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 10 -r 2 --run-time 60s --host http://<NODE_IP>:30083 2>/dev/null
+RUN_TAG=wan80ms_u10_rep3 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 10 -r 3 --run-time 60s --host http://<NODE_IP>:30083 2>/dev/null
+```
+
+```bash
+RUN_TAG=wan80ms_u20_rep1 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 20 -r 1 --run-time 60s --host http://<NODE_IP>:30083 2>/dev/null
+RUN_TAG=wan80ms_u20_rep2 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 20 -r 2 --run-time 60s --host http://<NODE_IP>:30083 2>/dev/null
+RUN_TAG=wan80ms_u20_rep3 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 20 -r 3 --run-time 60s --host http://<NODE_IP>:30083 2>/dev/null
+```
+
+`REFRIGERATOR_NODE_IP`: `172.20.20.2`
+
+`ROBOTS_NODE_IP`: `172.20.20.3`
+
+### Generate Tail Latency and CDF Plots
+
+```bash
+python3 scripts/tail_latency.py \
+  --input "data/latencies_baseline_u*_rep*.csv" \
+  --outdir out/baseline \
+  --title "Baseline" \
+  --combined
+```
+
+```bash
+python3 scripts/tail_latency.py \
+  --input "data/latencies_wan30ms_u*_rep*.csv" \
+  --outdir out/wan30ms \
+  --title "WAN 30ms + 1% loss" \
+  --combined
+```
+
+```bash
+python3 scripts/tail_latency.py \
+  --input "data/latencies_wan80ms_u*_rep*.csv" \
+  --outdir out/wan80ms \
+  --title "WAN 80ms + 0.5% loss" \
+  --combined
+```
+
+Metrics generated:
+- P50 latency
+- P90 latency
+- P95 latency
+- P99 latency
+
+CDF plots are stored in `out/`
 
 
 ### Notes
@@ -548,7 +794,7 @@ python3 scripts/tail_latency.py \
 
 **Port forwarding:** To run on a floating IP on Chameleon Cloud, on a separate terminal on your local machine (before opening in browser):
 
-```
+```bash
 ssh -i ~/.ssh/VM-key.pem \
   -N -L 8501:127.0.0.1:8501 -L 5000:127.0.0.1:5000 -L 5432:127.0.0.1:5432 \
   cc@129.114.24.252
