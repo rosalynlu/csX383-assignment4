@@ -1,6 +1,6 @@
 # csX383-assignment2
 
-This repository contains the implementation of Programming Assignment 2 for CSX383 using a microservice architecture, which is based off of [Programming Assignment 1](https://github.com/rosalynlu/csX383-assignment1).
+This repository contains the implementation of Programming Assignment 2 for CSX383 using a microservice architecture, which is based off of [Programming Assignment 1](https://github.com/rosalynlu/csX383-assignment1) and [Programming Assignment 2](https://github.com/rosalynlu/csX383-assignment2).
 
 ## Architecture Overview
 
