@@ -3,16 +3,16 @@
 This repository contains the implementation of Programming Assignment 2 for CSX383 using a microservice architecture, which is based off of [Programming Assignment 1](https://github.com/rosalynlu/csX383-assignment1) and [Programming Assignment 2](https://github.com/rosalynlu/csX383-assignment2).
 
 ## Table of Contents
-* [Programming Assignment 1](#Programming-Assignment-1)
+* [**Programming Assignment 1**](#Programming-Assignment-1)
   * [Architecture Overview](#Architecture-Overview)
   * [Technologies Used](#Technologies-Used)
   * [Setup](#Setup)
   * [Deployment](#Deployment)
   * [Latency Analytics](#Latency-Analytics)
-* [Programming Assignment 2](#Programming-Assignment-2)
+* [**Programming Assignment 2**](#Programming-Assignment-2)
   * [Locust Workload & Tail Latency Analysis](#Locust-Workload-&-Tail-Latency-Analysis)
   * [ContainerLab HIL Implementation](#ContainerLab-HIL-Implementation)
-* [Programming Assignment 3 (In Progress)](#Programming-Assignment-3-(In-Progress))
+* [**Programming Assignment 3** (In Progress)](#Programming-Assignment-3-(In-Progress))
   * [Milestone 1: ContainerLab OSPF WAN](#Milestone-1-ContainerLab-OSPF-WAN)
 * [Notes](#Notes)
 
