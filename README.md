@@ -24,14 +24,18 @@ csX383-assignment3/
 │   ├── __init__.py
 │   └── requirements.txt         # Python dependencies (all services)
 ├── containerlab1_ospf/          # OSPF WAN topology
+│   ├── clab-pa3wan/             # Auto-generated runtime directory
+│   │   └── ...
+│   ├── outputs/                 # Outputs
+│   │   └── ...
+│   ├── r1-r6/                   # Router configs (FRR)
+│   ├── capture.sh               # Collect routing + OSPF outputs
+│   ├── cleanup.sh               # Destroy topology
 │   ├── pa3wan.clab.yaml         # ContainerLab topology (6 routers + 2 LAN hosts)
 │   ├── run.sh                   # Deploy topology + configure LAN interfaces
-│   ├── cleanup.sh               # Destroy topology
-│   ├── set-lan-ifs.sh           # Configure LAN1/LAN2 host interfaces
-│   ├── capture.sh               # Collect routing + OSPF outputs
-│   └── r1-r6/                   # Router configs (FRR)
+│   └── set-lan-ifs.sh           # Configure LAN1/LAN2 host interfaces
 ├── data/
-│   ├── latencies_..._rep.csv    # Latencies datasets
+│   ├── ...                      # Latencies datasets
 ├── flatbuffers_local/
 │   ├── __init__.py
 │   └── work.fbs                 # Local FlatBuffers schema backup
@@ -51,27 +55,13 @@ csX383-assignment3/
 ├── inventory/
 │   ├── Dockerfile
 │   └── requirements.txt
-├── k8s/
-│   ├── analytics-db.yaml
-│   ├── inventory-c2.yaml
-│   ├── ordering-c2.yaml
-│   ├── pricing-c2.yaml
-│   ├── refrigerator-c1.yaml
-│   ├── robot-bread-c3.yaml
-│   ├── robot-dairy-c3.yaml
-│   ├── robot-meat-c3.yaml
-│   ├── robot-party-c3.yaml
-│   ├── robot-produce-c3.yaml
-│   └── robots-c3.yaml
+├── k8s/                         # Kubernetes
+│   └── ...
 ├── ordering/
 │   ├── Dockerfile
 │   └── requirements.txt
-├── out/
-│   ├── cdf_combined.png
-│   ├── cdf_per_run.png
-│   ├── per_run_tail_latencies.png
-│   ├── pooled_tail_latencies.png
-│   └── summary.txt
+├── out/                         # CDF/Latency statistics outputs
+│   └── ...
 ├── pricing/
 │   ├── Dockerfile
 │   └── requirements.txt
