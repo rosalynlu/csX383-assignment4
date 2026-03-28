@@ -14,7 +14,7 @@ This repository contains the implementation of Programming Assignment 2 for CSX3
   * [ContainerLab HIL Implementation](#ContainerLab-HIL-Implementation)
 * [**Programming Assignment 3** (In Progress)](#Programming-Assignment-3-(In-Progress))
   * [Milestone 1: ContainerLab OSPF WAN](#Milestone-1-ContainerLab-OSPF-WAN)
-  * [Milestone 2: ContainerLAB Bridging Topology](#Milestone-2-ContainerLab-Bridging-Topology)
+  * [PA3 – Milestone 2: ContainerLab2 Bridging Topology](#Milestone-2-ContainerLab2-Bridging-Topology)
 * [Notes](#Notes)
 
 ## Repository Structure
