@@ -1,12 +1,13 @@
 ===== c2edge: ip addr =====
-59: eth1@if60: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9500 qdisc noqueue state UP group default 
-    link/ether aa:c1:ab:0a:66:8a brd ff:ff:ff:ff:ff:ff link-netnsid 1
+105: eth1@if104: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9500 qdisc noqueue state UP group default 
+    link/ether aa:c1:ab:ab:80:de brd ff:ff:ff:ff:ff:ff link-netnsid 1
     inet 192.168.50.10/24 scope global eth1
        valid_lft forever preferred_lft forever
 
 ===== c2edge: ARP / neighbor table =====
-192.168.50.23 dev eth1 lladdr aa:c1:ab:3e:e2:1d REACHABLE 
-192.168.50.21 dev eth1 FAILED 
-192.168.50.25 dev eth1 lladdr aa:c1:ab:dd:c7:1f REACHABLE 
-192.168.50.22 dev eth1 lladdr aa:c1:ab:52:f6:c1 REACHABLE 
-192.168.50.24 dev eth1 lladdr aa:c1:ab:74:b9:54 REACHABLE 
+192.168.50.25 dev eth1 lladdr aa:c1:ab:f2:5d:04 DELAY 
+192.168.50.21 dev eth1 lladdr aa:c1:ab:4a:9b:d5 REACHABLE 
+192.168.50.24 dev eth1 lladdr aa:c1:ab:45:51:c8 DELAY 
+172.20.20.1 dev eth0 lladdr 6a:7d:eb:42:ad:07 STALE 
+192.168.50.23 dev eth1 lladdr aa:c1:ab:72:7f:4b DELAY 
+192.168.50.22 dev eth1 lladdr aa:c1:ab:60:7c:df REACHABLE 

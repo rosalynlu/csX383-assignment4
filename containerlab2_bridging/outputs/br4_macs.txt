@@ -1,0 +1,18 @@
+port no	mac addr		is local?	ageing timer
+  2	aa:c1:ab:08:7b:68	no		 175.45
+  2	aa:c1:ab:3b:85:1b	yes		   0.00
+  2	aa:c1:ab:3b:85:1b	yes		   0.00
+  2	aa:c1:ab:3f:07:a1	no		 175.45
+  3	aa:c1:ab:42:25:5d	yes		   0.00
+  3	aa:c1:ab:42:25:5d	yes		   0.00
+  4	aa:c1:ab:45:51:c8	no		  71.52
+  2	aa:c1:ab:54:15:ac	no		 175.45
+  2	aa:c1:ab:6e:3b:0e	no		   1.12
+  5	aa:c1:ab:91:cd:cb	yes		   0.00
+  5	aa:c1:ab:91:cd:cb	yes		   0.00
+  2	aa:c1:ab:ab:80:de	no		  67.42
+  4	aa:c1:ab:bc:99:65	yes		   0.00
+  4	aa:c1:ab:bc:99:65	yes		   0.00
+  1	aa:c1:ab:ef:c2:4a	yes		   0.00
+  1	aa:c1:ab:ef:c2:4a	yes		   0.00
+  5	aa:c1:ab:f2:5d:04	no		  67.42
