@@ -1,0 +1,46 @@
+===== Connectivity tests from c2edge =====
+--- ping 192.168.50.21 ---
+PING 192.168.50.21 (192.168.50.21) 56(84) bytes of data.
+64 bytes from 192.168.50.21: icmp_seq=1 ttl=64 time=0.081 ms
+64 bytes from 192.168.50.21: icmp_seq=2 ttl=64 time=0.075 ms
+
+--- 192.168.50.21 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1021ms
+rtt min/avg/max/mdev = 0.075/0.078/0.081/0.003 ms
+
+--- ping 192.168.50.22 ---
+PING 192.168.50.22 (192.168.50.22) 56(84) bytes of data.
+64 bytes from 192.168.50.22: icmp_seq=1 ttl=64 time=0.112 ms
+64 bytes from 192.168.50.22: icmp_seq=2 ttl=64 time=0.066 ms
+
+--- 192.168.50.22 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1064ms
+rtt min/avg/max/mdev = 0.066/0.089/0.112/0.023 ms
+
+--- ping 192.168.50.23 ---
+PING 192.168.50.23 (192.168.50.23) 56(84) bytes of data.
+64 bytes from 192.168.50.23: icmp_seq=1 ttl=64 time=0.108 ms
+64 bytes from 192.168.50.23: icmp_seq=2 ttl=64 time=0.081 ms
+
+--- 192.168.50.23 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1061ms
+rtt min/avg/max/mdev = 0.081/0.094/0.108/0.013 ms
+
+--- ping 192.168.50.24 ---
+PING 192.168.50.24 (192.168.50.24) 56(84) bytes of data.
+64 bytes from 192.168.50.24: icmp_seq=1 ttl=64 time=0.117 ms
+64 bytes from 192.168.50.24: icmp_seq=2 ttl=64 time=0.095 ms
+
+--- 192.168.50.24 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1061ms
+rtt min/avg/max/mdev = 0.095/0.106/0.117/0.011 ms
+
+--- ping 192.168.50.25 ---
+PING 192.168.50.25 (192.168.50.25) 56(84) bytes of data.
+64 bytes from 192.168.50.25: icmp_seq=1 ttl=64 time=0.098 ms
+64 bytes from 192.168.50.25: icmp_seq=2 ttl=64 time=0.088 ms
+
+--- 192.168.50.25 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1059ms
+rtt min/avg/max/mdev = 0.088/0.093/0.098/0.005 ms
+

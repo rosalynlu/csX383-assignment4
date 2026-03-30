@@ -1,0 +1,50 @@
+===== br2: bridge link show =====
+89: eth4@if88: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9500 master br0 state forwarding priority 32 cost 2 
+91: eth5@if90: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9500 master br0 state forwarding priority 32 cost 2 
+93: eth1@if92: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9500 master br0 state forwarding priority 32 cost 10 
+84: eth2@if85: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9500 master br0 state forwarding priority 32 cost 5 
+95: eth3@if94: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9500 master br0 state forwarding priority 32 cost 10 
+
+===== br2: MAC learning / FDB =====
+33:33:00:00:00:01 dev br0 self permanent
+01:00:5e:00:00:6a dev br0 self permanent
+33:33:00:00:00:6a dev br0 self permanent
+01:00:5e:00:00:01 dev br0 self permanent
+33:33:ff:68:bd:f2 dev br0 self permanent
+aa:c1:ab:72:7f:4b dev eth2 master br0 
+aa:c1:ab:d0:bb:d2 dev eth2 vlan 1 master br0 permanent
+aa:c1:ab:d0:bb:d2 dev eth2 master br0 permanent
+33:33:00:00:00:01 dev eth2 self permanent
+01:00:5e:00:00:01 dev eth2 self permanent
+33:33:ff:d0:bb:d2 dev eth2 self permanent
+aa:c1:ab:4a:9b:d5 dev eth4 master br0 
+aa:c1:ab:68:bd:f2 dev eth4 vlan 1 master br0 permanent
+aa:c1:ab:68:bd:f2 dev eth4 master br0 permanent
+33:33:00:00:00:01 dev eth4 self permanent
+01:00:5e:00:00:01 dev eth4 self permanent
+33:33:ff:68:bd:f2 dev eth4 self permanent
+aa:c1:ab:60:7c:df dev eth5 master br0 
+aa:c1:ab:80:22:ff dev eth5 vlan 1 master br0 permanent
+aa:c1:ab:80:22:ff dev eth5 master br0 permanent
+33:33:00:00:00:01 dev eth5 self permanent
+01:00:5e:00:00:01 dev eth5 self permanent
+33:33:ff:80:22:ff dev eth5 self permanent
+aa:c1:ab:ab:80:de dev eth1 master br0 
+aa:c1:ab:3f:07:a1 dev eth1 master br0 
+aa:c1:ab:c3:c0:86 dev eth1 vlan 1 master br0 permanent
+aa:c1:ab:c3:c0:86 dev eth1 master br0 permanent
+33:33:00:00:00:01 dev eth1 self permanent
+01:00:5e:00:00:01 dev eth1 self permanent
+33:33:ff:c3:c0:86 dev eth1 self permanent
+aa:c1:ab:f2:5d:04 dev eth3 master br0 
+aa:c1:ab:45:51:c8 dev eth3 master br0 
+aa:c1:ab:6e:3b:0e dev eth3 vlan 1 master br0 permanent
+aa:c1:ab:6e:3b:0e dev eth3 master br0 permanent
+33:33:00:00:00:01 dev eth3 self permanent
+01:00:5e:00:00:01 dev eth3 self permanent
+33:33:ff:6e:3b:0e dev eth3 self permanent
+
+===== br2: bridge details =====
+4: br0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9500 qdisc noqueue state UP mode DEFAULT group default qlen 1000
+    link/ether aa:c1:ab:68:bd:f2 brd ff:ff:ff:ff:ff:ff promiscuity 0 allmulti 0 minmtu 68 maxmtu 65535 
+    bridge forward_delay 1500 hello_time 200 max_age 2000 ageing_time 30000 stp_state 1 priority 8192 vlan_filtering 0 vlan_protocol 802.1Q bridge_id 2000.AA:C1:AB:68:BD:F2 designated_root 1000.AA:C1:AB:08:7B:68 root_port 1 root_path_cost 10 topology_change 0 topology_change_detected 0 hello_timer    0.00 tcn_timer    0.00 topology_change_timer    0.00 gc_timer  156.31 fdb_n_learned 7 fdb_max_learned 0 vlan_default_pvid 1 vlan_stats_enabled 0 vlan_stats_per_port 0 group_fwd_mask 0 group_address 01:80:c2:00:00:00 mcast_snooping 1 no_linklocal_learn 0 mcast_vlan_snooping 0 mst_enabled 0 mcast_router 1 mcast_query_use_ifaddr 0 mcast_querier 0 mcast_hash_elasticity 16 mcast_hash_max 4096 mcast_last_member_count 2 mcast_startup_query_count 2 mcast_last_member_interval 100 mcast_membership_interval 26000 mcast_querier_interval 25500 mcast_query_interval 12500 mcast_query_response_interval 1000 mcast_startup_query_interval 3125 mcast_stats_enabled 0 mcast_igmp_version 2 mcast_mld_version 1 nf_call_iptables 0 nf_call_ip6tables 0 nf_call_arptables 0 addrgenmode eui64 numtxqueues 1 numrxqueues 1 gso_max_size 65536 gso_max_segs 65535 tso_max_size 524280 tso_max_segs 65535 gro_max_size 65536 gso_ipv4_max_size 65536 gro_ipv4_max_size 65536 
