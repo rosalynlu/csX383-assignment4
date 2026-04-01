@@ -588,12 +588,12 @@ python3 scripts/tail_latency.py \
   --outdir out \
   --title "Latency CDF" \
   --combined \
-  --prefix baseline_
+  --prefix baseline
 ```
 
-Use `--prefix` to tag all output files with a descriptive prefix (e.g. `baseline_`, `wan30ms_`). If omitted, files use their default names.
+Use `--prefix` to tag all output files with a descriptive prefix (e.g. `baseline`, `wan30ms`). If omitted, files use their default names.
 
-**Output** (with `--prefix baseline_`):
+**Output** (with `--prefix baseline`):
 - `out/cdf_per_run_baseline.png` — CDF curve per run
 - `out/cdf_combined_baseline.png` — all runs overlaid
 - `out/per_run_tail_latencies_baseline.csv` — P50/P90/P95/P99 per run
@@ -842,7 +842,7 @@ python3 scripts/tail_latency.py \
   --outdir out \
   --title "WAN 80ms + 0.5% loss" \
   --combined \
-  --prefix wan80ms_
+  --prefix wan80ms
 ```
 
 Metrics generated:
