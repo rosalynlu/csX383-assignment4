@@ -12,9 +12,12 @@ This repository contains the implementation of Programming Assignment 2 for CSX3
 * [**Programming Assignment 2**](#Programming-Assignment-2)
   * [Locust Workload & Tail Latency Analysis](#Locust-Workload-&-Tail-Latency-Analysis)
   * [ContainerLab HIL Implementation](#ContainerLab-HIL-Implementation)
-* [**Programming Assignment 3** (In Progress)](#Programming-Assignment-3-(In-Progress))
-  * [Milestone 1: ContainerLab OSPF WAN](#Milestone-1-ContainerLab-OSPF-WAN)
-  * [PA3 – Milestone 2: ContainerLab2 Bridging Topology](#Milestone-2-ContainerLab2-Bridging-Topology)
+* [**Programming Assignment 3**](#Programming-Assignment-3)
+  * [ContainerLab OSPF WAN](#ContainerLab-OSPF-WAN)
+  * [ContainerLab2 Bridging Topology](#ContainerLab2-Bridging-Topology)
+  * [Deployment](#Deployment)
+  * [Collecting Outputs](#Collecting-Outputs)
+  * [Cleanup](#Cleanup)
 * [Notes](#Notes)
 
 ## Repository Structure
@@ -591,14 +594,14 @@ python3 scripts/tail_latency.py \
   --prefix baseline
 ```
 
-Use `--prefix` to tag all output files with a descriptive prefix (e.g. `baseline`, `wan30ms`). If omitted, files use their default names.
+Use `--prefix` to tag all output files with a descriptive prefix (e.g. `baseline_`, `wan30ms_`). If omitted, files use their default names.
 
-**Output** (with `--prefix baseline`):
-- `out/cdf_per_run_baseline.png` — CDF curve per run
-- `out/cdf_combined_baseline.png` — all runs overlaid
-- `out/per_run_tail_latencies_baseline.csv` — P50/P90/P95/P99 per run
-- `out/pooled_tail_latencies_baseline.csv` — pooled tail latency statistics
-- `out/summary_baseline.txt` — pooled statistics across all runs
+**Output** (with `--prefix baseline_`):
+- `out/baseline__cdf_per_run_baseline.png` — CDF curve per run
+- `out/baseline_cdf_combined_baseline.png` — all runs overlaid
+- `out/baseline_per_run_tail_latencies_baseline.csv` — P50/P90/P95/P99 per run
+- `out/baseline_pooled_tail_latencies_baseline.csv` — pooled tail latency statistics
+- `out/baseline_summary_baseline.txt` — pooled statistics across all runs
 
 ## ContainerLab HIL Implementation
 
@@ -842,7 +845,7 @@ python3 scripts/tail_latency.py \
   --outdir out \
   --title "WAN 80ms + 0.5% loss" \
   --combined \
-  --prefix wan80ms
+  --prefix wan80ms_
 ```
 
 Metrics generated:
@@ -853,9 +856,9 @@ Metrics generated:
 
 CDF plots and CSV/text summaries are stored in `out/`, each suffixed with the `--prefix` value.
 
-# Programming Assignment 3 (In Progress)
+# Programming Assignment 3
 
-## Milestone 1: ContainerLab OSPF WAN
+## ContainerLab OSPF WAN
 
 This replaces the original ContainerLab WAN forwarder with a 6-router OSPF-based WAN topology using FRRouting (FRR).
 
@@ -939,9 +942,9 @@ Run:
 ```bash
 ./cleanup.sh
 ```
-## PA3 – Milestone 2: ContainerLab2 Bridging Topology
+## ContainerLab2 Bridging Topology
 
-## Overview
+### Overview
 
 ContainerLab2 runs on **team-ras-1** (172.16.6.164) and acts as a Layer 2 HIL between
 Cluster 2 (services) and Cluster 3 (robot pods). It uses 4 Linux bridges with STP to
@@ -956,7 +959,7 @@ C3 robot pod → team-ras-1:3108x → proxy container → bridge network (STP) �
 Each robot has its own proxy node on a different LAN, so each traverses a different path
 through the spanning tree.
 
-## Topology
+### Topology
 
 4 Linux bridges (fully interconnected, STP eliminates loops):
 - **br1** — priority 4096 (STP root)
@@ -985,7 +988,7 @@ Port mapping on team-ras-1 (172.16.6.164):
 | produce | 31084 | 31560 | produceproxy |
 | party | 31085 | 31561 | partyproxy |
 
-## How to Deploy
+## Deployment
 
 All commands run **on team-ras-1** unless noted.
 
@@ -1049,7 +1052,6 @@ bash cleanup.sh
 pkill -f "socat TCP-LISTEN:310" || true
 pkill -f "socat TCP-LISTEN:315" || true
 ```
-
 
 # Notes
 
