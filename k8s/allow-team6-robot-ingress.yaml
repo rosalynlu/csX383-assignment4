@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-team6-robot-ingress
+  namespace: team6
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - robot-bread
+          - robot-dairy
+          - robot-meat
+          - robot-party
+          - robot-produce
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector: {}
