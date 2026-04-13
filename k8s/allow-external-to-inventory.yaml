@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-external-to-inventory
+  namespace: team6
+spec:
+  podSelector:
+    matchLabels:
+      app: inventory
+  policyTypes:
+    - Ingress
+  ingress:
+    - ports:
+        - protocol: TCP
+          port: 50051
+        - protocol: TCP
+          port: 5556

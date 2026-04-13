@@ -1055,6 +1055,132 @@ pkill -f "socat TCP-LISTEN:310" || true
 pkill -f "socat TCP-LISTEN:315" || true
 ```
 
+---
+
+## PA4 Milestone 1
+
+### Overview
+
+This milestone extends the **PA3** deployment by introducing:
+
+- A **backup service group** on Cluster 4
+- **Intra-cluster network policies** for security enforcement
+- Verification of **end-to-end functionality** and system stability
+
+---
+
+### System Architecture
+
+| Cluster | Role | Services |
+|---------|------|----------|
+| **Cluster 2** | Primary | `ordering`, `inventory`, `pricing`, `grocery-db` |
+| **Cluster 3** | Robots | `bread`, `dairy`, `meat`, `produce`, `party` |
+| **Cluster 4** | Backup | `ordering`, `inventory`, `pricing`, `grocery-db` |
+
+---
+
+### Deployment Details
+
+Backup services were deployed on **Cluster 4** using the following manifests:
+
+| Manifest | Description |
+|----------|-------------|
+| `k8s/ordering-c4.yaml` | Ordering service |
+| `k8s/inventory-c4.yaml` | Inventory service |
+| `k8s/pricing-c4.yaml` | Pricing service |
+| `k8s/grocery-db-c4.yaml` | Grocery database |
+
+> All pods are running and verified healthy.
+
+**Example verification:**
+
+```bash
+kubectl get pods -n team6
+```
+
+**Health check:**
+
+```bash
+curl http://<cluster4-node-ip>:31083/health
+```
+
+---
+
+### Network Policies
+
+Intra-cluster namespace policies were applied to improve security:
+
+#### Cluster 2 -- Core Services
+
+```
+allow-team6-core-ingress.yaml
+allow-external-to-inventory.yaml
+default-deny-ingress-c2.yaml
+```
+
+#### Cluster 3 -- Robots
+
+```
+allow-team6-robot-ingress.yaml
+default-deny-ingress-c3.yaml
+```
+
+> These policies restrict traffic to **only required communication paths** while preserving application functionality.
+
+---
+
+### System Verification
+
+- [x] Primary system (Cluster 2 + Cluster 3) works end-to-end
+- [x] Orders successfully flow:
+
+```
+ordering -> inventory -> robots -> response
+```
+
+- [x] Network policies do not break service communication
+- [x] Backup services on Cluster 4 are deployed and internally functional
+
+---
+
+### Known Issue
+
+> **Symptom:** Requests from `team-ras-1` to Cluster 4 NodePort (`31083`) time out.
+
+**Verified that:**
+- Services are reachable **within** Cluster 4
+- `/health` endpoint responds correctly internally
+
+**Conclusion:** This indicates a **network reachability limitation**, not a deployment issue.
+
+---
+
+### Deployment Notes
+
+To deploy services:
+
+```bash
+kubectl apply -f k8s/<filename>.yaml
+```
+
+**Example:**
+
+```bash
+kubectl apply -f k8s/ordering-c4.yaml
+```
+
+---
+
+### Summary
+
+| Item | Status |
+|------|--------|
+| Backup services deployed on Cluster 4 | Done |
+| Intra-cluster network policies implemented | Done |
+| Full functionality of primary system verified | Done |
+| External connectivity limitation documented | Known Issue |
+
+
 # Notes
 
 **PostgreSQL authentication tip:** To avoid re-running the database user/password setup after each VM restart, you can set `pg_hba.conf` to use `trust` authentication for local connections. Then a simple `sudo systemctl restart postgresql` will bring the existing database back up without needing to recreate anything.
