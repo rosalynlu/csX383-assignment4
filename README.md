@@ -1143,18 +1143,6 @@ ordering -> inventory -> robots -> response
 
 ---
 
-### Known Issue
-
-> **Symptom:** Requests from `team-ras-1` to Cluster 4 NodePort (`31083`) time out.
-
-**Verified that:**
-- Services are reachable **within** Cluster 4
-- `/health` endpoint responds correctly internally
-
-**Conclusion:** This indicates a **network reachability limitation**, not a deployment issue.
-
----
-
 ### Deployment Notes
 
 To deploy services:
@@ -1176,9 +1164,50 @@ kubectl apply -f k8s/ordering-c4.yaml
 | Item | Status |
 |------|--------|
 | Backup services deployed on Cluster 4 | Done |
+| Robots deployed on Cluster 4 | Done |
 | Intra-cluster network policies implemented | Done |
 | Full functionality of primary system verified | Done |
-| External connectivity limitation documented | Known Issue |
+| Full functionality of backup system (C4) verified | Done |
+
+---
+
+## PA4 C4 Debugging and Fix
+
+### Problem
+
+After Milestone 1, end-to-end orders to Cluster 4 were timing out with gRPC `DEADLINE_EXCEEDED` errors.
+
+### Root Cause
+
+CoreDNS on C4 was failing to resolve internal Kubernetes DNS names (`*.team6.svc.cluster.local`). Every service using a DNS hostname to reach another service would hang until the DNS query timed out (~20+ seconds), causing ordering's gRPC call to inventory to exceed its deadline before inventory could even respond.
+
+### Fixes
+
+All DNS-based addresses in the C4 manifests were replaced with Kubernetes-injected ClusterIP environment variables using the `$(VAR_NAME)` substitution syntax, which resolves at pod startup with no DNS lookup needed.
+
+| File | Variable | Before | After |
+|------|----------|--------|-------|
+| `k8s/ordering-c4.yaml` | `INVENTORY_ADDR` | `inventory.team6.svc.cluster.local:50051` | `$(INVENTORY_SERVICE_HOST):50051` |
+| `k8s/inventory-c4.yaml` | `DB_HOST` | `grocery-db.team6.svc.cluster.local` | `$(GROCERY_DB_SERVICE_HOST)` |
+| `k8s/inventory-c4.yaml` | `PRICING_GRPC_ADDR` | `pricing.team6.svc.cluster.local:50053` | `$(PRICING_SERVICE_HOST):50053` |
+| `k8s/pricing-c4.yaml` | `DB_HOST` | `grocery-db.team6.svc.cluster.local` | `$(GROCERY_DB_SERVICE_HOST)` |
+
+### Robot Deployment
+
+Robots cannot be deployed on C3 and pointed at C4 because the `172.16.3.x` (C3) and `172.16.4.x` (C4) subnets are not routable to each other. Instead, robots are deployed **on C4 itself** via `k8s/robots-c4.yaml`, also using `$(INVENTORY_SERVICE_HOST)` for both gRPC and ZMQ addresses.
+
+### Verification
+
+```bash
+ssh nw-c4-m1 "curl -s -X POST http://172.16.4.22:31083/submit \
+  -H 'Content-Type: application/json' \
+  -d '{\"request_type\":\"GROCERY_ORDER\",\"id\":\"test\",\"items\":{\"bread\":1,\"milk\":1}}'"
+```
+
+Expected response:
+```json
+{"code":"OK","message":"OK: received all robot replies for ...\n\nITEMIZED BILL:\n  milk: 1 x $4.50 = $4.50\n  bread: 1 x $3.99 = $3.99\nTOTAL: $8.49"}
+```
 
 
 # Notes

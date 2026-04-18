@@ -19,11 +19,11 @@ spec:
           imagePullPolicy: Always
           env:
             - name: PRICING_GRPC_ADDR
-              value: "pricing.team6.svc.cluster.local:50053"
+              value: "$(PRICING_SERVICE_HOST):50053"
             - name: ZMQ_PUB_ADDR
               value: "tcp://0.0.0.0:5556"
             - name: DB_HOST
-              value: "grocery-db.team6.svc.cluster.local"
+              value: "$(GROCERY_DB_SERVICE_HOST)"
             - name: DB_PORT
               value: "5432"
             - name: DB_NAME

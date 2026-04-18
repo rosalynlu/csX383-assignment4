@@ -19,7 +19,7 @@ spec:
           imagePullPolicy: Always
           env:
             - name: INVENTORY_ADDR
-              value: "inventory.team6.svc.cluster.local:50051"
+              value: "$(INVENTORY_SERVICE_HOST):50051"
           ports:
             - containerPort: 5000
 ---
