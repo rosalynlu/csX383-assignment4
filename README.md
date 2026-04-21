@@ -1137,6 +1137,57 @@ Intra-cluster namespace policies restrict traffic to only required communication
 | Intra-cluster network policies applied (C2, C3) | Done |
 | End-to-end primary path verified (C1 → C2 → C3 robots) | Done |
 
+### Verification
+
+**1. Check pod state on all clusters**
+
+```bash
+# C2: should show ordering, inventory, pricing, grocery-db (no robots)
+ssh nw-c2-m1 "kubectl get pods -n team6"
+
+# C3: should show 10 robot pods — 5 subscribed to C2, 5 subscribed to C4
+#   robot-bread, robot-dairy, robot-meat, robot-produce, robot-party       (C2 path)
+#   robot-bread-c4, robot-dairy-c4, robot-meat-c4, robot-produce-c4, robot-party-c4  (C4 path)
+ssh nw-c3-m1 "kubectl get pods -n team6"
+
+# C4: should show ordering, inventory, pricing, grocery-db (no robots)
+ssh nw-c4-m1 "kubectl get pods -n team6"
+```
+
+**2. Verify bridged LAN topology (run on team-ras-1)**
+
+```bash
+# eth5 should appear — that is the c4edge link into br1
+docker exec clab-pa3bridges-br1 bridge link show
+
+# c2edge and c4edge should be on the same L2 segment
+docker exec clab-pa3bridges-c2edge ping -c 2 192.168.50.11
+
+# c4edge can reach the robot proxies
+docker exec clab-pa3bridges-c4edge ping -c 2 192.168.50.21
+```
+
+**3. End-to-end order tests**
+
+These must be run from **team-ras-1** (the `172.16.x.x` addresses are Chameleon Cloud private IPs, not reachable from your local machine).
+
+Both commands should return `"code":"OK"` with an itemized bill covering all five robot categories (bread, dairy, meat, produce, party) and a total of $23.97.
+
+```bash
+# SSH into team-ras-1 first
+ssh team-ras-1
+
+# C2 primary path
+curl --max-time 15 -X POST http://172.16.2.99:30083/submit \
+  -H 'Content-Type: application/json' \
+  -d '{"request_type":"GROCERY_ORDER","id":"test","items":{"bread":1,"milk":1,"chicken":1,"apples":1,"soda":1}}'
+
+# C4 backup path
+curl --max-time 15 -X POST http://172.16.4.205:31083/submit \
+  -H 'Content-Type: application/json' \
+  -d '{"request_type":"GROCERY_ORDER","id":"test","items":{"bread":1,"milk":1,"chicken":1,"apples":1,"soda":1}}'
+```
+
 ---
 
 # Notes
