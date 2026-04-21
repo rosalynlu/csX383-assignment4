@@ -30,7 +30,7 @@ make_bridge() {
   "
 }
 
-make_bridge br1 4096  eth1 eth2 eth3 eth4
+make_bridge br1 4096  eth1 eth2 eth3 eth4 eth5
 make_bridge br2 8192  eth1 eth2 eth3 eth4 eth5
 make_bridge br3 12288 eth1 eth2 eth3 eth4
 make_bridge br4 16384 eth1 eth2 eth3 eth4 eth5
@@ -40,6 +40,7 @@ docker exec ${LAB}-br1 sh -lc '
   bridge link set dev eth2 cost 10
   bridge link set dev eth3 cost 25
   bridge link set dev eth4 cost 50
+  bridge link set dev eth5 cost 2
 '
 
 docker exec ${LAB}-br2 sh -lc '
