@@ -1201,13 +1201,13 @@ Milestone 2 introduces WAN latency impairments and measures how they degrade end
 | 30 ms + 1% loss | `delay 30ms loss 1%` | `pa4_wan30ms` |
 | 80 ms + 0.5% loss | `delay 80ms loss 0.5%` | `pa4_wan80ms` |
 
-Impairments are applied to **ens3** on nw-c1-m1, which is the outbound interface towards C2. This adds delay to all traffic leaving the client cluster, simulating WAN latency degradation. All steps below run on **nw-c1-m1** unless noted.
+Impairments are applied to **ens3** on **nw-c1-m1**, which is the outbound interface towards C2. This adds delay to all traffic leaving the client cluster, simulating WAN latency degradation.
 
 ---
 
 ### Step 1 — Collect baseline (no netem)
 
-Ensure no netem is applied, then sanity check connectivity:
+**On nw-c1-m1** — ensure netem is clear, then sanity check connectivity:
 
 ```bash
 cd ~/csX383-assignment4/containerlab1_ospf
@@ -1219,7 +1219,7 @@ ping -c 5 172.16.2.99
 # Expected: low RTT (~1–5 ms)
 ```
 
-Run Locust:
+**On nw-c1-m1** — run Locust:
 
 ```bash
 cd ~/csX383-assignment4
@@ -1245,6 +1245,8 @@ Produces 9 files: `data/latencies_pa4_wan_baseline_u{1,10,20}_rep{1,2,3}.csv`.
 
 ### Step 2 — Apply 30 ms impairment and collect data
 
+**On nw-c1-m1** — apply netem and verify:
+
 ```bash
 cd ~/csX383-assignment4/containerlab1_ospf
 ./apply-netem.sh 30ms 1%
@@ -1254,7 +1256,7 @@ ping -c 5 172.16.2.99
 # Expected: RTT ~30 ms
 ```
 
-Run Locust:
+**On nw-c1-m1** — run Locust:
 
 ```bash
 cd ~/csX383-assignment4
@@ -1280,6 +1282,8 @@ Produces 9 files: `data/latencies_pa4_wan30ms_u{1,10,20}_rep{1,2,3}.csv`.
 
 ### Step 3 — Switch to 80 ms impairment and collect data
 
+**On nw-c1-m1** — apply netem and verify:
+
 ```bash
 cd ~/csX383-assignment4/containerlab1_ospf
 ./apply-netem.sh 80ms 0.5%
@@ -1289,9 +1293,11 @@ ping -c 5 172.16.2.99
 # Expected: RTT ~80 ms
 ```
 
-Re-run the same Locust matrix substituting `pa4_wan80ms` for `pa4_wan30ms` in all `RUN_TAG` values. Produces `data/latencies_pa4_wan80ms_u*_rep*.csv`.
+**On nw-c1-m1** — re-run the same Locust matrix substituting `pa4_wan80ms` for `pa4_wan30ms` in all `RUN_TAG` values. Produces `data/latencies_pa4_wan80ms_u*_rep*.csv`.
 
 ### Step 4 — Remove impairments (cleanup)
+
+**On nw-c1-m1:**
 
 ```bash
 cd ~/csX383-assignment4/containerlab1_ospf
@@ -1301,7 +1307,7 @@ cd ~/csX383-assignment4/containerlab1_ospf
 
 ### Step 5 — Analyse and compare
 
-**Per-scenario tail latencies + CDF plots:**
+**On your local machine** — per-scenario tail latencies + CDF plots:
 
 ```bash
 python3 scripts/tail_latency.py \
@@ -1317,7 +1323,7 @@ python3 scripts/tail_latency.py \
   --outdir out --title "PA4 WAN 80ms+0.5%loss" --combined --prefix pa4_wan80ms
 ```
 
-**Side-by-side scenario comparison (overlaid CDF + table):**
+**On your local machine** — side-by-side scenario comparison (overlaid CDF + table):
 
 ```bash
 python3 scripts/compare_scenarios.py \
