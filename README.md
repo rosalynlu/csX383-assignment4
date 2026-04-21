@@ -1188,6 +1188,114 @@ curl --max-time 15 -X POST http://172.16.4.205:31083/submit \
   -d '{"request_type":"GROCERY_ORDER","id":"test","items":{"bread":1,"milk":1,"chicken":1,"apples":1,"soda":1}}'
 ```
 
+## Milestone 2
+
+### Overview
+
+Milestone 2 introduces WAN latency impairments to ContainerLab 1 (OSPF) and measures how they degrade end-to-end tail latencies compared to the Milestone 1 baseline.
+
+**Two degradation scenarios:**
+| Scenario | Delay | Loss |
+|----------|-------|------|
+| `pa4_wan30ms` | 30 ms | 1 % |
+| `pa4_wan80ms` | 80 ms | 0.5 % |
+
+Impairments are applied to `eth1` on both **lan1host** (traffic leaving C1 into the WAN) and **lan2host** (traffic leaving C2 back to C1), so the full request+response RTT is degraded.
+
+---
+
+### Step 1 — Apply netem (run on the ContainerLab VM)
+
+```bash
+cd containerlab1_ospf
+
+# Scenario A: 30 ms delay + 1% loss
+./apply-netem.sh 30ms 1%
+./verify-netem.sh   # confirm rules are in place
+```
+
+Verify with a ping (RTT should be ≥ 2× the per-side delay):
+
+```bash
+sudo docker exec clab-pa3wan-lan1host ping -c 5 172.16.2.2
+```
+
+### Step 2 — Run Locust (30 ms scenario, run on nw-c1-m1)
+
+```bash
+cd ~/csX383-assignment4
+source venv/bin/activate
+
+# 1 concurrent user
+RUN_TAG=pa4_wan30ms_u1_rep1 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 1 -r 1 --run-time 60s --host http://172.20.20.2:30083 2>/dev/null
+RUN_TAG=pa4_wan30ms_u1_rep2 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 1 -r 1 --run-time 60s --host http://172.20.20.2:30083 2>/dev/null
+RUN_TAG=pa4_wan30ms_u1_rep3 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 1 -r 1 --run-time 60s --host http://172.20.20.2:30083 2>/dev/null
+
+# 10 concurrent users
+RUN_TAG=pa4_wan30ms_u10_rep1 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 10 -r 10 --run-time 60s --host http://172.20.20.2:30083 2>/dev/null
+RUN_TAG=pa4_wan30ms_u10_rep2 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 10 -r 10 --run-time 60s --host http://172.20.20.2:30083 2>/dev/null
+RUN_TAG=pa4_wan30ms_u10_rep3 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 10 -r 10 --run-time 60s --host http://172.20.20.2:30083 2>/dev/null
+
+# 20 concurrent users
+RUN_TAG=pa4_wan30ms_u20_rep1 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 20 -r 20 --run-time 60s --host http://172.20.20.2:30083 2>/dev/null
+RUN_TAG=pa4_wan30ms_u20_rep2 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 20 -r 20 --run-time 60s --host http://172.20.20.2:30083 2>/dev/null
+RUN_TAG=pa4_wan30ms_u20_rep3 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 20 -r 20 --run-time 60s --host http://172.20.20.2:30083 2>/dev/null
+```
+
+Produces 9 files: `data/latencies_pa4_wan30ms_u{1,10,20}_rep{1,2,3}.csv`.
+
+### Step 3 — Switch to 80 ms scenario (on ContainerLab VM)
+
+```bash
+cd containerlab1_ospf
+./apply-netem.sh 80ms 0.5%
+./verify-netem.sh
+```
+
+Re-run the same Locust matrix substituting `pa4_wan80ms` for `pa4_wan30ms` in all `RUN_TAG` values. Produces `data/latencies_pa4_wan80ms_u*_rep*.csv`.
+
+### Step 4 — Remove impairments (on ContainerLab VM)
+
+```bash
+cd containerlab1_ospf
+./clear-netem.sh
+```
+
+### Step 5 — Analyse and compare
+
+**Per-scenario tail latencies + CDF plots:**
+
+```bash
+python3 scripts/tail_latency.py \
+  --input "data/latencies_pa4_u*_rep*.csv" \
+  --outdir out --title "PA4 Baseline" --combined --prefix pa4_baseline
+
+python3 scripts/tail_latency.py \
+  --input "data/latencies_pa4_wan30ms_u*_rep*.csv" \
+  --outdir out --title "PA4 WAN 30ms+1%loss" --combined --prefix pa4_wan30ms
+
+python3 scripts/tail_latency.py \
+  --input "data/latencies_pa4_wan80ms_u*_rep*.csv" \
+  --outdir out --title "PA4 WAN 80ms+0.5%loss" --combined --prefix pa4_wan80ms
+```
+
+**Side-by-side scenario comparison (overlaid CDF + table):**
+
+```bash
+python3 scripts/compare_scenarios.py \
+  --scenarios "PA4 Baseline" "WAN 30ms+1%loss" "WAN 80ms+0.5%loss" \
+  --inputs "data/latencies_pa4_u*_rep*.csv" \
+           "data/latencies_pa4_wan30ms_u*_rep*.csv" \
+           "data/latencies_pa4_wan80ms_u*_rep*.csv" \
+  --outdir out \
+  --title "PA4 Milestone 2: Baseline vs WAN Degradation"
+```
+
+**Outputs:**
+- `out/comparison_cdf.png` — overlaid CDF curves for all three scenarios
+- `out/comparison_table.csv` — P50/P90/P95/P99 side-by-side
+- `out/pa4_baseline__cdf_*.png`, `out/pa4_wan30ms__cdf_*.png`, `out/pa4_wan80ms__cdf_*.png` — per-scenario CDFs
+
 ---
 
 # Notes
