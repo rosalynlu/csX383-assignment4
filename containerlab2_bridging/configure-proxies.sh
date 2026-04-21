@@ -10,6 +10,11 @@ docker exec -d ${LAB}-c2edge socat TCP-LISTEN:30081,fork,reuseaddr TCP:172.16.2.
 docker exec -d ${LAB}-c2edge socat TCP-LISTEN:30557,fork,reuseaddr TCP:172.16.2.99:30557
 echo "  c2edge: gRPC+ZMQ -> 172.16.2.99"
 
+# c4edge: listen on bridge IP, forward to C4 inventory (backup cluster)
+docker exec -d ${LAB}-c4edge socat TCP-LISTEN:30081,fork,reuseaddr TCP:172.16.4.151:31081
+docker exec -d ${LAB}-c4edge socat TCP-LISTEN:30557,fork,reuseaddr TCP:172.16.4.151:31557
+echo "  c4edge: gRPC+ZMQ -> 172.16.4.151"
+
 # each proxy: listen on management IP, forward to c2edge via bridge network
 for proxy in breadproxy dairyproxy meatproxy produceproxy partyproxy; do
   docker exec -d ${LAB}-${proxy} socat TCP-LISTEN:30081,fork,reuseaddr TCP:192.168.50.10:30081

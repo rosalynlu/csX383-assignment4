@@ -18,6 +18,9 @@ topology:
     c2edge:
       kind: linux
       image: wbitt/network-multitool:extra
+    c4edge:
+      kind: linux
+      image: wbitt/network-multitool:extra
 
     breadproxy:
       kind: linux
@@ -37,6 +40,7 @@ topology:
 
   links:
     - endpoints: ["c2edge:eth1", "br1:eth1"]
+    - endpoints: ["c4edge:eth1", "br1:eth5"]
 
     - endpoints: ["breadproxy:eth1", "br2:eth4"]
     - endpoints: ["dairyproxy:eth1", "br2:eth5"]

@@ -5,7 +5,7 @@ LAB=clab-pa3bridges
 OUT=outputs
 mkdir -p "$OUT"
 
-for ip in 192.168.50.21 192.168.50.22 192.168.50.23 192.168.50.24 192.168.50.25; do
+for ip in 192.168.50.11 192.168.50.21 192.168.50.22 192.168.50.23 192.168.50.24 192.168.50.25; do
   docker exec ${LAB}-c2edge ping -c 2 -W 1 "$ip" >/dev/null || true
 done
 
@@ -22,7 +22,7 @@ for br in br1 br2 br3 br4; do
   } > "${OUT}/${br}_bridge_state.txt"
 done
 
-for h in c2edge breadproxy dairyproxy meatproxy produceproxy partyproxy; do
+for h in c2edge c4edge breadproxy dairyproxy meatproxy produceproxy partyproxy; do
   {
     echo "===== ${h}: ip addr ====="
     docker exec ${LAB}-${h} ip addr show dev eth1
@@ -34,9 +34,15 @@ done
 
 {
   echo "===== Connectivity tests from c2edge ====="
-  for ip in 192.168.50.21 192.168.50.22 192.168.50.23 192.168.50.24 192.168.50.25; do
+  for ip in 192.168.50.11 192.168.50.21 192.168.50.22 192.168.50.23 192.168.50.24 192.168.50.25; do
     echo "--- ping $ip ---"
     docker exec ${LAB}-c2edge ping -c 2 -W 1 "$ip" || true
+    echo
+  done
+  echo "===== Connectivity tests from c4edge ====="
+  for ip in 192.168.50.10 192.168.50.21 192.168.50.22 192.168.50.23 192.168.50.24 192.168.50.25; do
+    echo "--- ping $ip ---"
+    docker exec ${LAB}-c4edge ping -c 2 -W 1 "$ip" || true
     echo
   done
 } > "${OUT}/connectivity.txt"

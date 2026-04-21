@@ -15,6 +15,7 @@ set_ip() {
 }
 
 set_ip c2edge       192.168.50.10
+set_ip c4edge       192.168.50.11
 set_ip breadproxy   192.168.50.21
 set_ip dairyproxy   192.168.50.22
 set_ip meatproxy    192.168.50.23

@@ -1057,158 +1057,87 @@ pkill -f "socat TCP-LISTEN:315" || true
 
 ---
 
-## PA4 Milestone 1
+# Programming Assignment 4
 
-### Overview
-
-This milestone extends the **PA3** deployment by introducing:
-
-- A **backup service group** on Cluster 4
-- **Intra-cluster network policies** for security enforcement
-- Verification of **end-to-end functionality** and system stability
-
----
+## Milestone 1
 
 ### System Architecture
 
-| Cluster | Role | Services |
-|---------|------|----------|
-| **Cluster 2** | Primary | `ordering`, `inventory`, `pricing`, `grocery-db` |
-| **Cluster 3** | Robots | `bread`, `dairy`, `meat`, `produce`, `party` |
-| **Cluster 4** | Backup | `ordering`, `inventory`, `pricing`, `grocery-db` |
+The application is deployed across four Kubernetes clusters:
 
----
+| Cluster | Subnet | Role | Services |
+|---------|--------|------|----------|
+| **C1** | 172.16.1.x | Client | `refrigerator` (Streamlit) — NodePort 30091 |
+| **C2** | 172.16.2.x | Primary | `ordering` (30083), `inventory` (30081/30557), `pricing`, `grocery-db` |
+| **C3** | 172.16.3.x | Robots | `bread`, `dairy`, `meat`, `produce`, `party` |
+| **C4** | 172.16.4.x | Backup | `ordering` (31083), `inventory` (31081/31557), `pricing`, `grocery-db` |
 
-### Deployment Details
+### End-to-End Data Flow
 
-Backup services were deployed on **Cluster 4** using the following manifests:
-
-| Manifest | Description |
-|----------|-------------|
-| `k8s/ordering-c4.yaml` | Ordering service |
-| `k8s/inventory-c4.yaml` | Inventory service |
-| `k8s/pricing-c4.yaml` | Pricing service |
-| `k8s/grocery-db-c4.yaml` | Grocery database |
-
-> All pods are running and verified healthy.
-
-**Example verification:**
-
-```bash
-kubectl get pods -n team6
+```
+Client (C1)
+    ↓  HTTP  (172.20.20.2:30083 via OSPF WAN containerlab)
+Ordering (C2)
+    ↓  gRPC
+Inventory (C2)
+    ↓  ZMQ PUB → socat chain → bridged LAN → c2edge
+Robots (C3) — subscribe via team-ras-1 proxy ports
+    ↓  gRPC response
+Inventory (C2) → response back to Ordering → Client
 ```
 
-**Health check:**
+Both C2 (primary) and C4 (backup) are wired into the bridged LAN via **c2edge** and **c4edge** respectively, so either cluster's inventory can reach the C3 robot cluster through the same proxy infrastructure.
 
-```bash
-curl http://<cluster4-node-ip>:31083/health
-```
+### WAN Topologies
 
----
+Two ContainerLab WAN topologies provide paths between clusters:
+- **ContainerLab 1 (OSPF)**: C1 → WAN → C2 (primary path)
+- **ContainerLab 2 (backup WAN)**: C1 → WAN → C4 (backup path, for Milestone 3 traffic steering)
+
+### Bridged LAN
+
+The Bridged LAN ContainerLab (PA3) runs on team-ras-1 and connects both C2 and C4 to the C3 robot cluster. See the [ContainerLab2 Bridging Topology](#ContainerLab2-Bridging-Topology) section for deployment details.
 
 ### Network Policies
 
-Intra-cluster namespace policies were applied to improve security:
+Intra-cluster namespace policies restrict traffic to only required communication paths:
 
-#### Cluster 2 -- Core Services
+**Cluster 2:**
+- `default-deny-ingress-c2.yaml` — deny all ingress by default
+- `allow-team6-core-ingress.yaml` — allow traffic between core service pods
+- `allow-external-to-inventory.yaml` — allow external ingress on inventory gRPC/ZMQ ports
 
-```
-allow-team6-core-ingress.yaml
-allow-external-to-inventory.yaml
-default-deny-ingress-c2.yaml
-```
+**Cluster 3:**
+- `default-deny-ingress-c3.yaml` — deny all ingress by default
+- `allow-team6-robot-ingress.yaml` — allow traffic between robot pods
 
-#### Cluster 3 -- Robots
+### Kubernetes Manifests
 
-```
-allow-team6-robot-ingress.yaml
-default-deny-ingress-c3.yaml
-```
+| Manifest | Cluster | Description |
+|----------|---------|-------------|
+| `k8s/refrigerator-c1.yaml` | C1 | Streamlit client |
+| `k8s/ordering-c2.yaml` | C2 | Ordering service (primary) |
+| `k8s/inventory-c2.yaml` | C2 | Inventory service (primary) |
+| `k8s/pricing-c2.yaml` | C2 | Pricing service (primary) |
+| `k8s/analytics-db.yaml` | C2 | PostgreSQL database (primary) |
+| `k8s/robot-{bread,dairy,meat,produce,party}-c3.yaml` | C3 | Robot workers |
+| `k8s/ordering-c4.yaml` | C4 | Ordering service (backup) |
+| `k8s/inventory-c4.yaml` | C4 | Inventory service (backup) |
+| `k8s/pricing-c4.yaml` | C4 | Pricing service (backup) |
+| `k8s/grocery-db-c4.yaml` | C4 | PostgreSQL database (backup) |
 
-> These policies restrict traffic to **only required communication paths** while preserving application functionality.
-
----
-
-### System Verification
-
-- [x] Primary system (Cluster 2 + Cluster 3) works end-to-end
-- [x] Orders successfully flow:
-
-```
-ordering -> inventory -> robots -> response
-```
-
-- [x] Network policies do not break service communication
-- [x] Backup services on Cluster 4 are deployed and internally functional
-
----
-
-### Deployment Notes
-
-To deploy services:
-
-```bash
-kubectl apply -f k8s/<filename>.yaml
-```
-
-**Example:**
-
-```bash
-kubectl apply -f k8s/ordering-c4.yaml
-```
-
----
-
-### Summary
+### Milestone 1 Status
 
 | Item | Status |
 |------|--------|
-| Backup services deployed on Cluster 4 | Done |
-| Robots deployed on Cluster 4 | Done |
-| Intra-cluster network policies implemented | Done |
-| Full functionality of primary system verified | Done |
-| Full functionality of backup system (C4) verified | Done |
+| Primary services deployed on C2 | Done |
+| Robot workers deployed on C3, connected to C2 via bridged LAN | Done |
+| Backup services deployed on C4 | Done |
+| C4 inventory wired into bridged LAN via c4edge | Done |
+| Intra-cluster network policies applied (C2, C3) | Done |
+| End-to-end primary path verified (C1 → C2 → C3 robots) | Done |
 
 ---
-
-## PA4 C4 Debugging and Fix
-
-### Problem
-
-After Milestone 1, end-to-end orders to Cluster 4 were timing out with gRPC `DEADLINE_EXCEEDED` errors.
-
-### Root Cause
-
-CoreDNS on C4 was failing to resolve internal Kubernetes DNS names (`*.team6.svc.cluster.local`). Every service using a DNS hostname to reach another service would hang until the DNS query timed out (~20+ seconds), causing ordering's gRPC call to inventory to exceed its deadline before inventory could even respond.
-
-### Fixes
-
-All DNS-based addresses in the C4 manifests were replaced with Kubernetes-injected ClusterIP environment variables using the `$(VAR_NAME)` substitution syntax, which resolves at pod startup with no DNS lookup needed.
-
-| File | Variable | Before | After |
-|------|----------|--------|-------|
-| `k8s/ordering-c4.yaml` | `INVENTORY_ADDR` | `inventory.team6.svc.cluster.local:50051` | `$(INVENTORY_SERVICE_HOST):50051` |
-| `k8s/inventory-c4.yaml` | `DB_HOST` | `grocery-db.team6.svc.cluster.local` | `$(GROCERY_DB_SERVICE_HOST)` |
-| `k8s/inventory-c4.yaml` | `PRICING_GRPC_ADDR` | `pricing.team6.svc.cluster.local:50053` | `$(PRICING_SERVICE_HOST):50053` |
-| `k8s/pricing-c4.yaml` | `DB_HOST` | `grocery-db.team6.svc.cluster.local` | `$(GROCERY_DB_SERVICE_HOST)` |
-
-### Robot Deployment
-
-Robots cannot be deployed on C3 and pointed at C4 because the `172.16.3.x` (C3) and `172.16.4.x` (C4) subnets are not routable to each other. Instead, robots are deployed **on C4 itself** via `k8s/robots-c4.yaml`, also using `$(INVENTORY_SERVICE_HOST)` for both gRPC and ZMQ addresses.
-
-### Verification
-
-```bash
-ssh nw-c4-m1 "curl -s -X POST http://172.16.4.22:31083/submit \
-  -H 'Content-Type: application/json' \
-  -d '{\"request_type\":\"GROCERY_ORDER\",\"id\":\"test\",\"items\":{\"bread\":1,\"milk\":1}}'"
-```
-
-Expected response:
-```json
-{"code":"OK","message":"OK: received all robot replies for ...\n\nITEMIZED BILL:\n  milk: 1 x $4.50 = $4.50\n  bread: 1 x $3.99 = $3.99\nTOTAL: $8.49"}
-```
-
 
 # Notes
 
@@ -1224,6 +1153,9 @@ ssh -i ~/.ssh/VM-key.pem \
 
 where `VM-key.pem` is the virtual machine key (`team-ras-ssh-keypair.pem`). Port 5432 is for running the analytics script locally against the VM's PostgreSQL database.
 
-From here, the rest of the instructions are the same.
+**Checking OSPF neighbors:** The warning `Can't open configuration file /etc/frr/vtysh.conf` is non-blocking and can be ignored.
 
-**Checking OSPF neighbors:** The warning `Can't open configuration file /etc/frr/vtysh.conf` or configuration file processing failure notices are non-blocking and don't affect OSPF functionality. They are ignorable.
+**Bridged LAN restart:** After tearing down and redeploying the bridged LAN containerlab, robot pods on C3 must be restarted to re-establish their ZMQ connections:
+```bash
+ssh nw-c3-m1 "kubectl rollout restart deployment -n team6"
+```
