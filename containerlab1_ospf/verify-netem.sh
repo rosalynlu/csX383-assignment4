@@ -1,7 +1,9 @@
 #!/bin/bash
-# Show current tc qdisc state on WAN entry and exit interfaces.
+# Show current tc qdisc state on the outbound WAN interface on nw-c1-m1.
+#
+# Run on: nw-c1-m1
 
-for NODE in lan1host lan2host; do
-  echo "=== $NODE eth1 ==="
-  sudo docker exec clab-pa3wan-$NODE tc qdisc show dev eth1
-done
+IFACE=${3:-ens3}
+
+echo "=== $IFACE ==="
+sudo tc qdisc show dev $IFACE

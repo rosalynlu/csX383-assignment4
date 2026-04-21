@@ -1192,52 +1192,34 @@ curl --max-time 15 -X POST http://172.16.4.205:31083/submit \
 
 ### Overview
 
-Milestone 2 introduces WAN latency impairments to ContainerLab 1 (OSPF) and measures how they degrade end-to-end tail latencies compared to a WAN baseline.
+Milestone 2 introduces WAN latency impairments and measures how they degrade end-to-end tail latencies compared to a baseline.
 
 **Three scenarios measured:**
 | Scenario | netem | Tag prefix |
 |----------|-------|------------|
-| WAN baseline | none | `pa4_wan_baseline` |
+| Baseline | none | `pa4_wan_baseline` |
 | 30 ms + 1% loss | `delay 30ms loss 1%` | `pa4_wan30ms` |
 | 80 ms + 0.5% loss | `delay 80ms loss 0.5%` | `pa4_wan80ms` |
 
-Impairments are applied to `eth1` on both **lan1host** (C1 → WAN) and **lan2host** (C2 → WAN), degrading the full request+response RTT.
-
-> **Important:** By default, nw-c1-m1 routes to `172.16.2.0/24` via the Chameleon Cloud router (`172.16.1.1`), bypassing the OSPF WAN entirely. Steps 1 and 6 below add/remove a host route to force traffic through the ContainerLab WAN so that netem actually affects latencies.
+Impairments are applied to **ens3** on nw-c1-m1, which is the outbound interface towards C2. This adds delay to all traffic leaving the client cluster, simulating WAN latency degradation. All steps below run on **nw-c1-m1** unless noted.
 
 ---
 
-### Step 1 — Force traffic through the OSPF WAN (on nw-c1-m1)
+### Step 1 — Collect baseline (no netem)
 
-```bash
-sudo ip route add 172.16.2.0/24 via 172.16.1.2 dev ens3
-```
-
-Confirm the route is in place:
-
-```bash
-ip route get 172.16.2.99
-# Expected: 172.16.2.99 via 172.16.1.2 dev ens3 ...
-```
-
-### Step 2 — Collect WAN baseline (no netem)
-
-**On team-ras-1** — ensure netem is clear before measuring baseline:
+Ensure no netem is applied, then sanity check connectivity:
 
 ```bash
 cd ~/csX383-assignment4/containerlab1_ospf
 ./clear-netem.sh
 ./verify-netem.sh
-# Expected output: "qdisc noqueue" or "qdisc pfifo_fast" — no netem line
-```
+# Expected: "qdisc noqueue" or "qdisc pfifo_fast" — no netem line
 
-**On nw-c1-m1** — sanity check ping (RTT should be low, ~1–5 ms):
-
-```bash
 ping -c 5 172.16.2.99
+# Expected: low RTT (~1–5 ms)
 ```
 
-Then run Locust:
+Run Locust:
 
 ```bash
 cd ~/csX383-assignment4
@@ -1261,21 +1243,18 @@ RUN_TAG=pa4_wan_baseline_u20_rep3 LOCUST_LOG_DIR=data locust -f scripts/locustfi
 
 Produces 9 files: `data/latencies_pa4_wan_baseline_u{1,10,20}_rep{1,2,3}.csv`.
 
-### Step 3 — Apply 30 ms impairment (on team-ras-1)
+### Step 2 — Apply 30 ms impairment and collect data
 
 ```bash
 cd ~/csX383-assignment4/containerlab1_ospf
 ./apply-netem.sh 30ms 1%
 ./verify-netem.sh   # confirm: should show "netem delay 30ms loss 1%"
-```
 
-**Sanity check on nw-c1-m1** (RTT should jump to ~60 ms):
-
-```bash
 ping -c 5 172.16.2.99
+# Expected: RTT ~30 ms
 ```
 
-Run Locust with the 30 ms scenario:
+Run Locust:
 
 ```bash
 cd ~/csX383-assignment4
@@ -1299,25 +1278,20 @@ RUN_TAG=pa4_wan30ms_u20_rep3 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py
 
 Produces 9 files: `data/latencies_pa4_wan30ms_u{1,10,20}_rep{1,2,3}.csv`.
 
-### Step 4 — Switch to 80 ms impairment (on team-ras-1)
+### Step 3 — Switch to 80 ms impairment and collect data
 
 ```bash
 cd ~/csX383-assignment4/containerlab1_ospf
 ./apply-netem.sh 80ms 0.5%
 ./verify-netem.sh   # confirm: should show "netem delay 80ms loss 0.5%"
-```
 
-**Sanity check on nw-c1-m1** (RTT should jump to ~160 ms):
-
-```bash
 ping -c 5 172.16.2.99
+# Expected: RTT ~80 ms
 ```
 
-Re-run the same Locust matrix substituting `pa4_wan80ms` for `pa4_wan30ms` in all `RUN_TAG` values (same `--host` address). Produces `data/latencies_pa4_wan80ms_u*_rep*.csv`.
+Re-run the same Locust matrix substituting `pa4_wan80ms` for `pa4_wan30ms` in all `RUN_TAG` values. Produces `data/latencies_pa4_wan80ms_u*_rep*.csv`.
 
-### Step 5 — Remove impairments and route (cleanup)
-
-**On team-ras-1:**
+### Step 4 — Remove impairments (cleanup)
 
 ```bash
 cd ~/csX383-assignment4/containerlab1_ospf
@@ -1325,13 +1299,7 @@ cd ~/csX383-assignment4/containerlab1_ospf
 ./verify-netem.sh   # confirm: no netem line in output
 ```
 
-**On nw-c1-m1:**
-
-```bash
-sudo ip route del 172.16.2.0/24 via 172.16.1.2 dev ens3
-```
-
-### Step 6 — Analyse and compare
+### Step 5 — Analyse and compare
 
 **Per-scenario tail latencies + CDF plots:**
 
