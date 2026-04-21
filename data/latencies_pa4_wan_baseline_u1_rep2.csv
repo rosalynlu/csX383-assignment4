@@ -1,0 +1,2 @@
+latency_ms,kind,name,ok,timestamp
+30010.660763829947,GROCERY_ORDER,POST /submit (fridge),0,1776795753.6517022
