@@ -15,11 +15,15 @@ docker exec -d ${LAB}-c4edge socat TCP-LISTEN:30081,fork,reuseaddr TCP:172.16.4.
 docker exec -d ${LAB}-c4edge socat TCP-LISTEN:30557,fork,reuseaddr TCP:172.16.4.151:31557
 echo "  c4edge: gRPC+ZMQ -> 172.16.4.151"
 
-# each proxy: listen on management IP, forward to c2edge via bridge network
+# each proxy: two paths through the bridge
+#   C2 path — ports 30081/30557 forward to c2edge (primary)
+#   C4 path — ports 30181/30657 forward to c4edge (backup)
 for proxy in breadproxy dairyproxy meatproxy produceproxy partyproxy; do
   docker exec -d ${LAB}-${proxy} socat TCP-LISTEN:30081,fork,reuseaddr TCP:192.168.50.10:30081
   docker exec -d ${LAB}-${proxy} socat TCP-LISTEN:30557,fork,reuseaddr TCP:192.168.50.10:30557
-  echo "  ${proxy}: gRPC+ZMQ -> c2edge (192.168.50.10) via bridge"
+  docker exec -d ${LAB}-${proxy} socat TCP-LISTEN:30181,fork,reuseaddr TCP:192.168.50.11:30081
+  docker exec -d ${LAB}-${proxy} socat TCP-LISTEN:30657,fork,reuseaddr TCP:192.168.50.11:30557
+  echo "  ${proxy}: C2 path -> c2edge (192.168.50.10)  C4 path -> c4edge (192.168.50.11)"
 done
 
 echo ""

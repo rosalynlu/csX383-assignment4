@@ -3,12 +3,19 @@
 # Each proxy gets its own host port so each robot traverses a different bridge path.
 # Container management IPs are resolved dynamically so this survives redeployments.
 #
-# Port mapping (team-ras-1 172.16.6.164):
+# C2 path port mapping (team-ras-1 172.16.6.164):
 #   breadproxy   gRPC=31081  ZMQ=31557
 #   dairyproxy   gRPC=31082  ZMQ=31558
 #   meatproxy    gRPC=31083  ZMQ=31559
 #   produceproxy gRPC=31084  ZMQ=31560
 #   partyproxy   gRPC=31085  ZMQ=31561
+#
+# C4 path port mapping (team-ras-1 172.16.6.164):
+#   breadproxy   gRPC=31181  ZMQ=31657
+#   dairyproxy   gRPC=31182  ZMQ=31658
+#   meatproxy    gRPC=31183  ZMQ=31659
+#   produceproxy gRPC=31184  ZMQ=31660
+#   partyproxy   gRPC=31185  ZMQ=31661
 
 set -euo pipefail
 
@@ -16,7 +23,9 @@ LAB=clab-pa3bridges
 
 # Kill any previous expose-proxies socat processes
 pkill -f "socat TCP-LISTEN:310[0-9][0-9]" 2>/dev/null || true
+pkill -f "socat TCP-LISTEN:311[0-9][0-9]" 2>/dev/null || true
 pkill -f "socat TCP-LISTEN:315[0-9][0-9]" 2>/dev/null || true
+pkill -f "socat TCP-LISTEN:316[0-9][0-9]" 2>/dev/null || true
 sleep 1
 
 declare -A GRPC_PORTS=(
@@ -35,14 +44,37 @@ declare -A ZMQ_PORTS=(
   [partyproxy]=31561
 )
 
+declare -A C4_GRPC_PORTS=(
+  [breadproxy]=31181
+  [dairyproxy]=31182
+  [meatproxy]=31183
+  [produceproxy]=31184
+  [partyproxy]=31185
+)
+
+declare -A C4_ZMQ_PORTS=(
+  [breadproxy]=31657
+  [dairyproxy]=31658
+  [meatproxy]=31659
+  [produceproxy]=31660
+  [partyproxy]=31661
+)
+
 for proxy in breadproxy dairyproxy meatproxy produceproxy partyproxy; do
   ip=$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${LAB}-${proxy})
   grpc=${GRPC_PORTS[$proxy]}
   zmq=${ZMQ_PORTS[$proxy]}
+  c4_grpc=${C4_GRPC_PORTS[$proxy]}
+  c4_zmq=${C4_ZMQ_PORTS[$proxy]}
 
-  nohup socat TCP-LISTEN:${grpc},fork,reuseaddr TCP:${ip}:30081 >/tmp/socat-${proxy}-grpc.log 2>&1 &
-  nohup socat TCP-LISTEN:${zmq},fork,reuseaddr  TCP:${ip}:30557 >/tmp/socat-${proxy}-zmq.log  2>&1 &
-  echo "  ${proxy} (${ip}): 172.16.6.164:${grpc} (gRPC)  172.16.6.164:${zmq} (ZMQ)"
+  # C2 path: proxy's 30081/30557 (-> c2edge -> C2 inventory)
+  nohup socat TCP-LISTEN:${grpc},fork,reuseaddr    TCP:${ip}:30081 >/tmp/socat-${proxy}-c2-grpc.log 2>&1 &
+  nohup socat TCP-LISTEN:${zmq},fork,reuseaddr     TCP:${ip}:30557 >/tmp/socat-${proxy}-c2-zmq.log  2>&1 &
+  # C4 path: proxy's 30181/30657 (-> c4edge -> C4 inventory)
+  nohup socat TCP-LISTEN:${c4_grpc},fork,reuseaddr TCP:${ip}:30181 >/tmp/socat-${proxy}-c4-grpc.log 2>&1 &
+  nohup socat TCP-LISTEN:${c4_zmq},fork,reuseaddr  TCP:${ip}:30657 >/tmp/socat-${proxy}-c4-zmq.log  2>&1 &
+
+  echo "  ${proxy} (${ip}): C2 ${grpc}/${zmq}  C4 ${c4_grpc}/${c4_zmq}"
 done
 
 echo ""

@@ -24,3 +24,30 @@ spec:
               value: "172.16.6.164:31084"
             - name: ZMQ_SUB_ADDR
               value: "tcp://172.16.6.164:31560"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: robot-produce-c4
+  namespace: team6
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: robot-produce-c4
+  template:
+    metadata:
+      labels:
+        app: robot-produce-c4
+    spec:
+      containers:
+        - name: robot
+          image: 192.168.1.129:5000/team6/robot-service:latest
+          imagePullPolicy: Always
+          env:
+            - name: ROBOT_NAME
+              value: "produce"
+            - name: INVENTORY_ADDR
+              value: "172.16.4.236:31081"
+            - name: ZMQ_SUB_ADDR
+              value: "tcp://172.16.4.236:31557"
