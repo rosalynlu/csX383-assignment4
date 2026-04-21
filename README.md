@@ -1188,6 +1188,158 @@ curl --max-time 15 -X POST http://172.16.4.205:31083/submit \
   -d '{"request_type":"GROCERY_ORDER","id":"test","items":{"bread":1,"milk":1,"chicken":1,"apples":1,"soda":1}}'
 ```
 
+## Milestone 2
+
+### Overview
+
+Milestone 2 introduces WAN latency impairments and measures how they degrade end-to-end tail latencies compared to a baseline.
+
+**Three scenarios measured:**
+| Scenario | netem | Tag prefix |
+|----------|-------|------------|
+| Baseline | none | `pa4_wan_baseline` |
+| 30 ms + 1% loss | `delay 30ms loss 1%` | `pa4_wan30ms` |
+| 80 ms + 0.5% loss | `delay 80ms loss 0.5%` | `pa4_wan80ms` |
+
+Impairments are applied to **ens3** on **nw-c1-m1**, which is the outbound interface towards C2. This adds delay to all traffic leaving the client cluster, simulating WAN latency degradation.
+
+---
+
+### Step 1 — Collect baseline (no netem)
+
+**On nw-c1-m1** — ensure netem is clear, then sanity check connectivity:
+
+```bash
+cd ~/csX383-assignment4/containerlab1_ospf
+./clear-netem.sh
+./verify-netem.sh
+# Expected: "qdisc noqueue" or "qdisc pfifo_fast" — no netem line
+
+ping -c 5 172.16.2.99
+# Expected: low RTT (~1–5 ms)
+```
+
+**On nw-c1-m1** — run Locust:
+
+```bash
+cd ~/csX383-assignment4
+source venv/bin/activate
+
+# 1 concurrent user
+RUN_TAG=pa4_wan_baseline_u1_rep1 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 1 -r 1 --run-time 60s --host http://172.16.2.99:30083 2>/dev/null
+RUN_TAG=pa4_wan_baseline_u1_rep2 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 1 -r 1 --run-time 60s --host http://172.16.2.99:30083 2>/dev/null
+RUN_TAG=pa4_wan_baseline_u1_rep3 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 1 -r 1 --run-time 60s --host http://172.16.2.99:30083 2>/dev/null
+
+# 10 concurrent users
+RUN_TAG=pa4_wan_baseline_u10_rep1 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 10 -r 10 --run-time 60s --host http://172.16.2.99:30083 2>/dev/null
+RUN_TAG=pa4_wan_baseline_u10_rep2 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 10 -r 10 --run-time 60s --host http://172.16.2.99:30083 2>/dev/null
+RUN_TAG=pa4_wan_baseline_u10_rep3 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 10 -r 10 --run-time 60s --host http://172.16.2.99:30083 2>/dev/null
+
+# 20 concurrent users
+RUN_TAG=pa4_wan_baseline_u20_rep1 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 20 -r 20 --run-time 60s --host http://172.16.2.99:30083 2>/dev/null
+RUN_TAG=pa4_wan_baseline_u20_rep2 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 20 -r 20 --run-time 60s --host http://172.16.2.99:30083 2>/dev/null
+RUN_TAG=pa4_wan_baseline_u20_rep3 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 20 -r 20 --run-time 60s --host http://172.16.2.99:30083 2>/dev/null
+```
+
+Produces 9 files: `data/latencies_pa4_wan_baseline_u{1,10,20}_rep{1,2,3}.csv`.
+
+### Step 2 — Apply 30 ms impairment and collect data
+
+**On nw-c1-m1** — apply netem and verify:
+
+```bash
+cd ~/csX383-assignment4/containerlab1_ospf
+./apply-netem.sh 30ms 1%
+./verify-netem.sh   # confirm: should show "netem delay 30ms loss 1%"
+
+ping -c 5 172.16.2.99
+# Expected: RTT ~30 ms
+```
+
+**On nw-c1-m1** — run Locust:
+
+```bash
+cd ~/csX383-assignment4
+source venv/bin/activate
+
+# 1 concurrent user
+RUN_TAG=pa4_wan30ms_u1_rep1 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 1 -r 1 --run-time 60s --host http://172.16.2.99:30083 2>/dev/null
+RUN_TAG=pa4_wan30ms_u1_rep2 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 1 -r 1 --run-time 60s --host http://172.16.2.99:30083 2>/dev/null
+RUN_TAG=pa4_wan30ms_u1_rep3 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 1 -r 1 --run-time 60s --host http://172.16.2.99:30083 2>/dev/null
+
+# 10 concurrent users
+RUN_TAG=pa4_wan30ms_u10_rep1 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 10 -r 10 --run-time 60s --host http://172.16.2.99:30083 2>/dev/null
+RUN_TAG=pa4_wan30ms_u10_rep2 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 10 -r 10 --run-time 60s --host http://172.16.2.99:30083 2>/dev/null
+RUN_TAG=pa4_wan30ms_u10_rep3 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 10 -r 10 --run-time 60s --host http://172.16.2.99:30083 2>/dev/null
+
+# 20 concurrent users
+RUN_TAG=pa4_wan30ms_u20_rep1 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 20 -r 20 --run-time 60s --host http://172.16.2.99:30083 2>/dev/null
+RUN_TAG=pa4_wan30ms_u20_rep2 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 20 -r 20 --run-time 60s --host http://172.16.2.99:30083 2>/dev/null
+RUN_TAG=pa4_wan30ms_u20_rep3 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py --headless -u 20 -r 20 --run-time 60s --host http://172.16.2.99:30083 2>/dev/null
+```
+
+Produces 9 files: `data/latencies_pa4_wan30ms_u{1,10,20}_rep{1,2,3}.csv`.
+
+### Step 3 — Switch to 80 ms impairment and collect data
+
+**On nw-c1-m1** — apply netem and verify:
+
+```bash
+cd ~/csX383-assignment4/containerlab1_ospf
+./apply-netem.sh 80ms 0.5%
+./verify-netem.sh   # confirm: should show "netem delay 80ms loss 0.5%"
+
+ping -c 5 172.16.2.99
+# Expected: RTT ~80 ms
+```
+
+**On nw-c1-m1** — re-run the same Locust matrix substituting `pa4_wan80ms` for `pa4_wan30ms` in all `RUN_TAG` values. Produces `data/latencies_pa4_wan80ms_u*_rep*.csv`.
+
+### Step 4 — Remove impairments (cleanup)
+
+**On nw-c1-m1:**
+
+```bash
+cd ~/csX383-assignment4/containerlab1_ospf
+./clear-netem.sh
+./verify-netem.sh   # confirm: no netem line in output
+```
+
+### Step 5 — Analyse and compare
+
+**On your local machine** — per-scenario tail latencies + CDF plots:
+
+```bash
+python3 scripts/tail_latency.py \
+  --input "data/latencies_pa4_wan_baseline_u*_rep*.csv" \
+  --outdir out --title "PA4 WAN Baseline" --combined --prefix pa4_wan_baseline
+
+python3 scripts/tail_latency.py \
+  --input "data/latencies_pa4_wan30ms_u*_rep*.csv" \
+  --outdir out --title "PA4 WAN 30ms+1%loss" --combined --prefix pa4_wan30ms
+
+python3 scripts/tail_latency.py \
+  --input "data/latencies_pa4_wan80ms_u*_rep*.csv" \
+  --outdir out --title "PA4 WAN 80ms+0.5%loss" --combined --prefix pa4_wan80ms
+```
+
+**On your local machine** — side-by-side scenario comparison (overlaid CDF + table):
+
+```bash
+python3 scripts/compare_scenarios.py \
+  --scenarios "WAN Baseline" "WAN 30ms+1%loss" "WAN 80ms+0.5%loss" \
+  --inputs "data/latencies_pa4_wan_baseline_u*_rep*.csv" \
+           "data/latencies_pa4_wan30ms_u*_rep*.csv" \
+           "data/latencies_pa4_wan80ms_u*_rep*.csv" \
+  --outdir out \
+  --title "PA4 Milestone 2: Baseline vs WAN Degradation"
+```
+
+**Outputs:**
+- `out/comparison_cdf.png` — overlaid CDF curves for all three scenarios
+- `out/comparison_table.csv` — P50/P90/P95/P99 side-by-side
+- `out/pa4_wan_baseline__cdf_*.png`, `out/pa4_wan30ms__cdf_*.png`, `out/pa4_wan80ms__cdf_*.png` — per-scenario CDFs
+
 ---
 
 # Notes
