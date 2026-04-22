@@ -1199,7 +1199,6 @@ Milestone 2 introduces WAN latency impairments and measures how they degrade end
 |----------|-------|------------|
 | Baseline | none | `pa4_wan_baseline` |
 | 30 ms + 1% loss | `delay 30ms loss 1%` | `pa4_wan30ms` |
-| 80 ms + 0.5% loss | `delay 80ms loss 0.5%` | `pa4_wan80ms` |
 
 Impairments are applied to **ens3** on **nw-c1-m1**, which is the outbound interface towards C2. This adds delay to all traffic leaving the client cluster, simulating WAN latency degradation.
 
@@ -1280,22 +1279,8 @@ RUN_TAG=pa4_wan30ms_u20_rep3 LOCUST_LOG_DIR=data locust -f scripts/locustfile.py
 
 Produces 9 files: `data/latencies_pa4_wan30ms_u{1,10,20}_rep{1,2,3}.csv`.
 
-### Step 3 — Switch to 80 ms impairment and collect data
 
-**On nw-c1-m1** — apply netem and verify:
-
-```bash
-cd ~/csX383-assignment4/containerlab1_ospf
-./apply-netem.sh 80ms 0.5%
-./verify-netem.sh   # confirm: should show "netem delay 80ms loss 0.5%"
-
-ping -c 5 172.16.2.99
-# Expected: RTT ~80 ms
-```
-
-**On nw-c1-m1** — re-run the same Locust matrix substituting `pa4_wan80ms` for `pa4_wan30ms` in all `RUN_TAG` values. Produces `data/latencies_pa4_wan80ms_u*_rep*.csv`.
-
-### Step 4 — Remove impairments (cleanup)
+### Step 3 — Remove impairments (cleanup)
 
 **On nw-c1-m1:**
 
@@ -1305,7 +1290,7 @@ cd ~/csX383-assignment4/containerlab1_ospf
 ./verify-netem.sh   # confirm: no netem line in output
 ```
 
-### Step 5 — Analyse and compare
+### Step 4 — Analyse and compare
 
 **On your local machine** — per-scenario tail latencies + CDF plots:
 
@@ -1317,10 +1302,6 @@ python3 scripts/tail_latency.py \
 python3 scripts/tail_latency.py \
   --input "data/latencies_pa4_wan30ms_u*_rep*.csv" \
   --outdir out --title "PA4 WAN 30ms+1%loss" --combined --prefix pa4_wan30ms
-
-python3 scripts/tail_latency.py \
-  --input "data/latencies_pa4_wan80ms_u*_rep*.csv" \
-  --outdir out --title "PA4 WAN 80ms+0.5%loss" --combined --prefix pa4_wan80ms
 ```
 
 **On your local machine** — side-by-side scenario comparison (overlaid CDF + table):
