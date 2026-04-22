@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: steer-to-backup
+  namespace: team6
+spec:
+  podSelector:
+    matchLabels:
+      app: refrigerator
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 172.16.4.0/24      # C4 backup — allow
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 172.16.2.0/24        # block C2 primary
