@@ -1334,6 +1334,110 @@ python3 scripts/compare_scenarios.py \
 - `out/comparison_table.csv` — P50/P90/P95/P99 side-by-side
 - `out/pa4_wan_baseline__cdf_*.png`, `out/pa4_wan30ms__cdf_*.png`, `out/pa4_wan80ms__cdf_*.png` — per-scenario CDFs
 
+## Milestone 3
+
+### Overview
+
+Milestone 3 uses a Kubernetes egress `NetworkPolicy` on Cluster 1 to steer client traffic away from the degraded primary path (C1 → C2) to the backup path (C1 → C4), and measures the resulting latency.
+
+> **Note:** Per the professor's clarification, namespace enforcement is **intra-cluster only**.
+
+### Network Policies on C1
+
+| Policy | Type | Effect |
+|--------|------|--------|
+| `default-deny-ingress` | Ingress | Deny all ingress by default |
+| `allow-refrigerator-ingress` | Ingress | Allow pod traffic on port 8501 |
+| `steer-to-backup` | **Egress** | Block C2 (`172.16.2.0/24`), allow C4 (`172.16.4.0/24`) |
+
+### Deployment
+
+**Apply steering policy on nw-c1-m1:**
+
+```bash
+kubectl apply -f k8s/steer-to-backup-c1.yaml
+kubectl get networkpolicy -n team6
+```
+
+**Verify from inside the pod:**
+
+```bash
+POD=refrigerator-85dc78c77d-hxlxt
+
+# C2 should be blocked
+kubectl exec -n team6 -it $POD -- python3 -c "
+import urllib.request, json
+try:
+    data = json.dumps({'request_type':'GROCERY_ORDER','id':'test','items':{'bread':1}}).encode()
+    req = urllib.request.Request('http://172.16.2.99:30083/submit', data=data, headers={'Content-Type':'application/json'})
+    r = urllib.request.urlopen(req, timeout=5)
+    print('C2 REACHABLE:', r.read().decode())
+except Exception as e:
+    print('C2 BLOCKED:', e)
+"
+
+# C4 should succeed
+kubectl exec -n team6 -it $POD -- python3 -c "
+import urllib.request, json
+data = json.dumps({'request_type':'GROCERY_ORDER','id':'test','items':{'bread':1,'milk':1,'chicken':1,'apples':1,'soda':1}}).encode()
+req = urllib.request.Request('http://172.16.4.205:31083/submit', data=data, headers={'Content-Type':'application/json'})
+r = urllib.request.urlopen(req, timeout=15)
+print('C4 REACHABLE:', r.read().decode())
+"
+```
+
+### Collecting Latency Data
+
+Run Locust on nw-c1-m1 targeting C4.
+
+```bash
+cd ~/team6/csX383-assignment4
+source venv/bin/activate
+
+for users in 1 10 20; do
+  for rep in 1 2 3; do
+    echo "Running u${users}_rep${rep}..."
+    RUN_TAG=pa4_steered_u${users}_rep${rep} LOCUST_LOG_DIR=data \
+      locust -f scripts/locustfile.py --headless \
+      -u $users -r $users --run-time 60s \
+      --host http://172.16.4.205:31083 2>/dev/null
+  done
+done
+```
+
+**Outputs:**
+- `data/latencies_pa4_steered_u{1,10,20}_rep{1,2,3}.csv` — raw latency CSVs per run
+
+### Generating Plots
+
+Run on nw-c1-m1.
+
+```bash
+python3 scripts/tail_latency.py \
+  --input "data/latencies_pa4_steered_u*_rep*.csv" \
+  --outdir out --title "PA4 Steered to Backup (C4)" --combined --prefix pa4_steered
+
+python3 scripts/compare_scenarios.py \
+  --scenarios "Baseline" "WAN 30ms+1%loss" "Steered to Backup" \
+  --inputs "data/latencies_pa4_wan_baseline_u*_rep*.csv" \
+           "data/latencies_pa4_wan30ms_u*_rep*.csv" \
+           "data/latencies_pa4_steered_u*_rep*.csv" \
+  --outdir out \
+  --title "PA4 Milestone 3: Traffic Steering Recovery"
+```
+
+**Outputs:**
+- `out/pa4_steered_summary.txt` — P50/P90/P95/P99 summary for steered scenario
+- `out/pa4_steered_cdf_combined.png` — CDF plot for steered scenario
+- `out/comparison_cdf.png` — overlaid CDF curves for all three scenarios
+- `out/comparison_table.csv` — P50/P90/P95/P99 side-by-side
+
+### Cleanup
+
+```bash
+kubectl delete networkpolicy steer-to-backup -n team6
+```
+
 ---
 
 # Notes
